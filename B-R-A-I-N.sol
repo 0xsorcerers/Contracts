@@ -1,6 +1,8 @@
+// File: contracts/BRAIN.sol
+// Custom contract
 // @title The B.R.A.I.N on Sonic Network
 // Big-data reasoning and autonomous intelligence neural node 
-// website: https://brainonsonic.xyz | telegram: https://t.me/Oxsorcerer | twitter: https://x.com/brainonsonic 
+// website: https://brainonsonic.xyz | telegram: https://t.me/brainonsonic | twitter: https://x.com/brainonsonic 
 
 pragma solidity ^0.8.18;
 
@@ -10,20 +12,21 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
         {
             brainDAO = _brainDAO;
             brainAddress = _brainAddress;
+            startTime = block.timestamp;
         }  
     using SafeERC20 for IERC20;  
     using Strings for uint256;
-
-    uint256 count = 0;
-    uint256 conversations = 0;
+    
+    uint256 public conversations = 0;
     uint256 public fee = 0.00001 ether;
     uint256 public payId = 0;
-    uint256 public brainFee = 1000 ether;
+    uint256 public brainFee = 10000 ether;
     uint256 public TotalBurns = 0;
-    uint256 public deadtax = 0;
-    uint256 public devtax = 0;
-    uint256 public toll = 0;
+    uint256 public deadtax = 50;
+    uint256 public devtax = 50;
+    uint256 public toll = 100;
     uint256 private limitCount = 1;
+    uint256 immutable startTime;
     address public brainDAO; 
     address public brainAddress;
     address payable public developmentAddress;
@@ -46,13 +49,21 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
     struct Brainer {
         string username;
         uint256 id;
-        string bot;
-        string build;
         string class;
-        string topic;
-        string tid;
         uint256 contributions;
         uint256 history;
+    }
+
+    struct Brain {
+        string topic;
+        string tmap;
+        uint256 prev;
+        uint256 post;
+    }
+
+    struct Module {
+        string modules;
+        string models;
     }
 
     struct TokenInfo {
@@ -74,11 +85,14 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
     mapping (uint256 => Brainer) public brainers;
     mapping (address => WhiteList) public whitelisted;
     mapping (uint256 => BlackList) public blacklisted;
+    mapping (uint256 => Module) private module;
+    mapping (uint256 => Brain) private brain;
+    mapping (uint256 => bytes32) private privateEye;
     mapping (uint256 => string) private dialogue;
 
     event brainMint(string _name, uint256 indexed tokenId);
 
-    function mint(string memory _name, string memory _robot, string memory _buildString) public payable nonReentrant {
+    function mint(string memory _name) public payable nonReentrant {
         require(!paused, "Paused Contract");
         require(bytes(_name).length > 0, "No Name"); 
         if (!whitelisted[msg.sender].whitelist) {
@@ -90,21 +104,25 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
           burn(brainFee, toll);
         }
         
-        uint256 tokenId = count + 1;
+        uint256 tokenId = totalSupply() + 1;
 
         // Create and map new brainer
         brainers[tokenId] = Brainer({
             username: _name,
             id: tokenId,
-            bot: _robot,
-            build: _buildString,
             class: '',
-            topic: '',
-            tid: '',
             contributions: 0,
             history: 0});
 
-        // Mint a new brain
+        // Map a new brain
+        brain[tokenId] = Brain({  
+            topic: '',
+            tmap: '',
+            prev: 0,
+            post: 0
+        });
+
+        // Mint brain
         _mint(msg.sender, tokenId);
 
         //Create Blacklist and map it
@@ -113,44 +131,53 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
         });
         
         emit brainMint(_name, tokenId);
-        count++;
     }
 
     event updatedBrain(string indexed _name, uint256 indexed tokenId);
 
-    function updateBrainer(uint256 _tokenId, string memory _newName, string memory _robot, string memory _buildString, 
-      string memory _class, string memory _topicString, string memory _tidString, bytes32 providedHash) external nonReentrant {
-       require(providedHash == secretHash, "Invalid hash provided");
-       require(msg.sender == ownerOf(_tokenId), "Not Your Brain.");
+    function updateBrainer(uint256 _tokenId, string memory _newName) external nonReentrant {
        require(bytes(_newName).length > 0, "No Name");
-       require(_tokenId >= 0 && _tokenId <= totalSupply(), "Not Found");
+       require(_tokenId > 0 && _tokenId <= totalSupply(), "Not Found");
        require(!blacklisted[_tokenId].blacklist, "Blacklisted"); 
         // Update the data in brainer
         brainers[_tokenId].username = string(_newName);
-        brainers[_tokenId].bot = string(_robot);
-        brainers[_tokenId].build = string(_buildString);
-        brainers[_tokenId].class = string(_class);
-        brainers[_tokenId].topic = string(_topicString);
-        brainers[_tokenId].tid = string(_tidString);
-        brainers[_tokenId].history++;
-
-        emit updatedBrain(_robot, _tokenId);
+        emit updatedBrain(_newName, _tokenId);
     }
 
-    function fetchDialogue(uint256[] calldata _data, bytes32 providedHash) external nonReentrant returns (string[] memory) {
-      require(providedHash == secretHash, "Invalid hash provided");
-      // Initialize our array
-        string[] memory results = new string[](_data.length);
-        for (uint256 i = 0; i < _data.length; i++) {
-            results[i] = dialogue[_data[i]];
+    event dialogueRecorded(uint256 indexed _tokenId, uint256 indexed dialogues);
+
+    function putDialogues(string[] calldata _dialogues, uint256 _tokenId, string memory _modules, string memory _models, 
+    string memory _class, string memory _topic, string memory _tmap) external nonReentrant { 
+       require(msg.sender == ownerOf(_tokenId), "Not Your Brain.");
+       require(_tokenId > 0 && _tokenId <= totalSupply(), "Not Found");
+       require(!blacklisted[_tokenId].blacklist, "Blacklisted");
+
+       brain[_tokenId].topic = _topic;
+       brain[_tokenId].tmap = _tmap;
+
+       uint256 count = conversations;
+       brain[_tokenId].prev = count;
+
+        // run loop        
+        for (uint256 i = 0; i < _dialogues.length; i++) {
+          string memory _dialogue = _dialogues[i];
+        // add conversations    
+        privateEye[count] = generatePrivateEye(_tokenId);
+        dialogue[count] = _dialogue;
+        module[count].modules = string(_modules);
+        module[count].models = string(_models);
+        count++;
         }
-        return results;
-    }
+        
+        conversations = count;
+        brain[_tokenId].post = count;
+        uint256 cycles = count - brain[_tokenId].prev;
 
-    function putDialogue(string memory _dialogue, bytes32 providedHash) external nonReentrant {
-      require(providedHash == secretHash, "Invalid hash provided");
-        dialogue[conversations] = _dialogue;
-        conversations++;
+        // update Brainer        
+        brainers[_tokenId].history += cycles;
+        brainers[_tokenId].class = string(_class);
+
+        emit dialogueRecorded(_tokenId, cycles);
     }
 
     function setContributions(uint8 _type, uint256 _tokenId, uint256 _amount) external onlyBrainDAO() {
@@ -161,16 +188,15 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
         brainers[_tokenId].contributions = _amount;
         }
     }
-    
-    // Private variable to store the hashed secret
-    bytes32 private secretHash;
 
     /**
      * @dev Function to set the secret value, callable only by authorized party.
-     * @param _secret The secret string to hash and store
+     * @param _tokenId The secret string to hash and map
      */
-    function setSecret(string memory _secret) external onlyBrainDAO {
-        secretHash = keccak256(abi.encodePacked(_secret));
+
+    function generatePrivateEye(uint256 _tokenId) internal view returns (bytes32) {
+       uint256 secretHash = _tokenId * startTime;
+        return bytes32(keccak256(abi.encodePacked(secretHash)));
     }
 
     function setBrainAddress (address _brainAddress) external onlyBrainDAO {
@@ -293,24 +319,52 @@ contract BRAIN is ERC721Enumerable, Ownable, ReentrancyGuard {
     } 
 
     // Getters
+    function pullBrain(uint256 _tokenId) public view returns (Brain[] memory) {
+       require(msg.sender == ownerOf(_tokenId), "Not Your Brain.");
+       require(_tokenId > 0 && _tokenId <= totalSupply(), "Not Found");
+       require(!blacklisted[_tokenId].blacklist, "Blacklisted"); 
+        Brain[] memory brainBoard = new Brain[](1);
+        brainBoard[0] = brain[_tokenId];
+        return brainBoard;
+    }
+
     function getBrainer(uint256 _tokenId) public view returns (Brainer[] memory) {
+       require(_tokenId > 0 && _tokenId <= totalSupply(), "Not Found");
+       require(!blacklisted[_tokenId].blacklist, "Blacklisted"); 
         Brainer[] memory brainBoard = new Brainer[](1);
         brainBoard[0] = brainers[_tokenId];
         return brainBoard;
     }
 
-    function getBrains(address _player) public view returns (Brainer[] memory) {
-        uint256 total = balanceOf(_player);
+    function getBrains(address _brainer) public view returns (Brainer[] memory) {
+        uint256 total = balanceOf(_brainer);
         Brainer[] memory result = new Brainer[](total);
         for (uint256 i = 0; i < total; i++) {
-          uint256 tokenId = tokenOfOwnerByIndex(_player, i);
+          uint256 tokenId = tokenOfOwnerByIndex(_brainer, i);
                 result[i] = brainers[tokenId];
         }
         return result;
     } 
+    
+    function fetchDialogues(uint256[] calldata _data, uint256 _tokenId) public view returns (string[] memory) {
+       require(msg.sender == ownerOf(_tokenId), "Not Your Brain.");
+       require(_tokenId > 0 && _tokenId <= totalSupply(), "Not Found");
+       require(!blacklisted[_tokenId].blacklist, "Blacklisted"); 
+       bytes32 secretEye = generatePrivateEye(_tokenId);
+       uint256 counter = 0;
+      // Initialize our array
+        string[] memory results = new string[](_data.length);
+        for (uint256 i = 0; i < _data.length; i++) {
+          uint256 convoId = _data[i];
+          if (privateEye[convoId] == secretEye) {
+            results[counter] = dialogue[convoId];    
+            counter++;        
+          }
+        }
+        return results;
+    }  
 
-    function burnBrains(uint256 _amount, uint256 _toll, bytes32 providedHash) external {
-      require(providedHash == secretHash, "Invalid hash provided");
+    function burnBrains(uint256 _amount, uint256 _toll) public {      
       burn(_amount, _toll);
     }
 
