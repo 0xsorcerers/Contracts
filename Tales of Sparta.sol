@@ -88,12 +88,14 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             blacklisted[tokenId] = BlackList({
                 blacklist: false
             });
+            talesminted[spartanDAO].talesmint++;
             emit proofOfTale(tokenId);
             tokenId++;  // Increment for the next mint
         }
         
         // Regular Mint
         _mint(msg.sender, tokenId);
+        talesminted[msg.sender].talesmint++;
         
         //Map it
         blacklisted[tokenId] = BlackList({
