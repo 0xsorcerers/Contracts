@@ -18,6 +18,9 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     string public baseURI;
     uint256 public fee = 25 ether;
     uint256 public payId = 0;
+    uint256 public multiplier1 = 5;
+    uint256 public multiplier2 = 1;
+    uint256 public multiplier3 = 1;
     string public Author = "undoxxed";
     bool public baseURItype = false; 
     bool public paused = false; 
@@ -66,7 +69,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function totalMintable() internal view returns (uint256) {
         uint256 talesOwned = talesminted[msg.sender].talesmint;
-        uint256 talesMintable = whitelisted[msg.sender].brainNFTowner + whitelisted[msg.sender].lazybearNFTowner + whitelisted[msg.sender].derpNFTowner;
+        uint256 talesMintable = (whitelisted[msg.sender].brainNFTowner * multiplier1) + (whitelisted[msg.sender].lazybearNFTowner * multiplier2) + ((whitelisted[msg.sender].derpNFTowner * multiplier3));
         uint256 talesUnminted = talesMintable - talesOwned;
           require(talesOwned <= talesMintable, "failsafe");
         return talesUnminted;
@@ -114,11 +117,14 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
     }
 
-    function setValues (uint256 _fee, uint256 _payId, uint256 _startTime, uint256 _wlDuration) external onlySpartanDAO() {
+    function setValues (uint256 _fee, uint256 _payId, uint256 _startTime, uint256 _wlDuration, uint256[] calldata _multipliers) external onlySpartanDAO() {
         fee = _fee;
         payId = _payId;
         startTime = _startTime;
         wlDuration = _wlDuration * 1 minutes;
+        multiplier1 = _multipliers[0];
+        multiplier2 = _multipliers[1];
+        multiplier3 = _multipliers[2];
     }
     
     function changeOwner(address newOwner) external onlySpartanDAO {
