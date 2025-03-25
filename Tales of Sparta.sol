@@ -179,7 +179,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         toll = _taxes[0];
         deadtax = _taxes[1];
         devtax = _taxes[2];
-        startTime = _startTime;
+        startTime = block.timestamp + (_startTime * 1 days);
         wlDuration = _wlDuration * 1 minutes;
         publicLimit = _publicLimit;
         multiplier1 = _multipliers[0];
