@@ -1,3 +1,4 @@
+// File: contracts/TalesOfSparta.sol
 // Custom contract
 // @title Tales of Sparta 
 // Original Storyboard Comic book Tales of Sparta on Sonic 
@@ -15,18 +16,26 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Strings for uint256;
     
     address public spartanDAO; 
+    address private developmentAddress;
+    address public burnAddress;
     string public baseURI;
-    uint256 public fee = 25 ether;
+    uint256 public fee = 0 ether;
+    uint256 public sosFee = 25000000000000000000000000000000 ether;
     uint256 public payId = 0;
     uint256 public multiplier1 = 5;
     uint256 public multiplier2 = 1;
     uint256 public multiplier3 = 1;
     uint256 public supplyCap = 3333;
+    uint256 private startTime = block.timestamp + 1 weeks;
+    uint256 private wlDuration = 60 minutes;
+    uint256 private publicLimit = 5;
+    uint256 private toll;
+    uint256 private deadtax;
+    uint256 private devtax;
+    uint256 public TotalBurns = 0;
     string public Author = "undoxxed";
     bool public baseURItype = false; 
     bool public paused = false; 
-    uint256 private startTime;
-    uint256 private wlDuration = 60 minutes;
 
     modifier onlySpartanDAO() {
         require(msg.sender == spartanDAO, "Not authorized.");
@@ -42,6 +51,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         uint256 brainNFTowner;
         uint256 lazybearNFTowner;
         uint256 derpNFTowner;
+        uint256 earlyContributor;
     }
 
     struct BlackList {
@@ -70,7 +80,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function totalMintable() internal view returns (uint256) {
         uint256 talesOwned = talesminted[msg.sender].talesmint;
-        uint256 talesMintable = (whitelisted[msg.sender].brainNFTowner * multiplier1) + (whitelisted[msg.sender].lazybearNFTowner * multiplier2) + ((whitelisted[msg.sender].derpNFTowner * multiplier3));
+        uint256 talesMintable = (whitelisted[msg.sender].brainNFTowner * multiplier1) + (whitelisted[msg.sender].lazybearNFTowner * multiplier2) + ((whitelisted[msg.sender].derpNFTowner * multiplier3) + whitelisted[msg.sender].earlyContributor);
         uint256 talesUnminted = talesMintable - talesOwned;
           require(talesOwned <= talesMintable, "failsafe");
         return talesUnminted;
@@ -109,22 +119,59 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function mint() public payable nonReentrant {
         require(!paused, "Paused Contract");
+        require(totalSupply() < supplyCap, "Max Exceeded.");
+
         if (whitelisted[msg.sender].whitelist) { 
             uint256 talesUnminted = totalMintable();   
-            require(talesUnminted > 0, "Insufficient fee");
-            SpinATale();
+            require(talesUnminted > 0, "Limits Exhausted");
+
+            SpinATale(); 
+
         } else {
           require((startTime + wlDuration) < block.timestamp, "Public Phase Has Not Yet Begun");
           require(msg.value == fee, "Insufficient fee");
+          // Transfer required brain tokens to mint a brain
+            transferTokens(sosFee); 
+          // Initiate permaburn from the contract
+            burn(sosFee, toll);
+
             SpinATale();
         }
     }
 
-    function setValues (uint256 _fee, uint256 _payId, uint256 _startTime, uint256 _wlDuration, uint256[] calldata _multipliers) external onlySpartanDAO() {
+    function burn(uint256 _burnAmount, uint256 _num) internal {
+        uint256 taxed = (_burnAmount * _num)/100 ;
+
+        uint256 dead = (taxed * deadtax)/100;
+        uint256 dev =  (taxed * devtax)/100;
+
+        TokenInfo storage tokens = AllowedCrypto[payId];
+        IERC20 paytoken;
+        paytoken = tokens.paytoken;               
+        paytoken.transfer(burnAddress, dead);   
+        paytoken.transfer(developmentAddress, dev); 
+        TotalBurns += dead;       
+    }
+    
+    function transferTokens(uint256 _cost) internal {
+        TokenInfo storage tokens = AllowedCrypto[payId];
+        IERC20 paytoken;
+        paytoken = tokens.paytoken;
+        paytoken.transferFrom(msg.sender,address(this), _cost);
+    }
+
+
+    function setValues (uint256 _fee, uint256 _sosFee, uint256 _payId, uint256[] calldata _taxes, 
+    uint256 _startTime, uint256 _wlDuration, uint256 _publicLimit, uint256[] calldata _multipliers) external onlySpartanDAO() {
         fee = _fee;
+        sosFee = _sosFee;
         payId = _payId;
+        toll = _taxes[0];
+        deadtax = _taxes[1];
+        devtax = _taxes[2];
         startTime = _startTime;
         wlDuration = _wlDuration * 1 minutes;
+        publicLimit = _publicLimit;
         multiplier1 = _multipliers[0];
         multiplier2 = _multipliers[1];
         multiplier3 = _multipliers[2];
@@ -221,6 +268,13 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
     }
 
+    function addToEarlyWhitelist(address[] calldata _address, uint256[] calldata _amount) external onlySpartanDAO {
+        for (uint256 i = 0; i < _address.length; i++) {
+            whitelisted[_address[i]].whitelist = true;
+            whitelisted[_address[i]].earlyContributor = _amount[i];
+        }
+    }
+
     function addToBlacklist(uint256[] calldata _nfts) external onlySpartanDAO {
         for (uint256 i = 0; i < _nfts.length; i++) {
             blacklisted[_nfts[i]].blacklist = true;
@@ -233,6 +287,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             whitelisted[_address[i]].brainNFTowner = 0;
             whitelisted[_address[i]].lazybearNFTowner = 0;
             whitelisted[_address[i]].derpNFTowner = 0;
+            whitelisted[_address[i]].earlyContributor = 0;
         }
     }
 
