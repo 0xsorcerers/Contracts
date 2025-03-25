@@ -88,54 +88,64 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     
     event proofOfTale(uint256 indexed tokenId);
 
-    function SpinATale() internal {
+    function SpinATale(uint256 _amount) internal {
         uint256 currentSupply = totalSupply();
         require(currentSupply < supplyCap, "Max Exceeded");
-        uint256 tokenId = currentSupply + 1;
-        
-        // Conditional Mint to the Spartan Reserve for the Sparta of Sonic GambleFi app
-        if (currentSupply > 0 && currentSupply % 10 == 0) {
-            _mint(spartanDAO, tokenId);
+        require((currentSupply + _amount) < supplyCap, "Max Exceeded");
+
+        for (uint256 s = 0; s < _amount; s++) {
+
+            uint256 tokenId = currentSupply + 1;
+            
+            // Conditional Mint to the Spartan Reserve for the Sparta of Sonic GambleFi app
+            if (currentSupply > 0 && currentSupply % 10 == 0) {
+                _mint(spartanDAO, tokenId);
+                //Map it
+                blacklisted[tokenId] = BlackList({
+                    blacklist: false
+                });
+                talesminted[spartanDAO].talesmint++;
+                emit proofOfTale(tokenId);
+                tokenId++;  // Increment for the next mint
+            }
+            
+            // Regular Mint
+            _mint(msg.sender, tokenId);
+            talesminted[msg.sender].talesmint++;
+            
             //Map it
             blacklisted[tokenId] = BlackList({
                 blacklist: false
             });
-            talesminted[spartanDAO].talesmint++;
+            
             emit proofOfTale(tokenId);
-            tokenId++;  // Increment for the next mint
+
         }
-        
-        // Regular Mint
-        _mint(msg.sender, tokenId);
-        talesminted[msg.sender].talesmint++;
-        
-        //Map it
-        blacklisted[tokenId] = BlackList({
-            blacklist: false
-        });
-        
-        emit proofOfTale(tokenId);
     }
 
-    function mint() public payable nonReentrant {
+    function mint(uint256 _amount) public payable nonReentrant {
         require(!paused, "Paused Contract");
-        require(totalSupply() < supplyCap, "Max Exceeded.");
+        uint256 supply = totalSupply();
+        require( supply < supplyCap, "Max Exceeded.");
+        require(supply + _amount <= supplyCap, "Max Exceeded.");
 
         if (whitelisted[msg.sender].whitelist) { 
             uint256 talesUnminted = totalMintable();   
             require(talesUnminted > 0, "Limits Exhausted");
+            require(talesUnminted >= _amount, "Limits Exhausted");
 
-            SpinATale(); 
+            SpinATale(_amount); 
 
         } else {
           require((startTime + wlDuration) < block.timestamp, "Public Phase Has Not Yet Begun");
-          require(msg.value == fee, "Insufficient fee");
+          require(msg.value == (fee * _amount), "Insufficient fee");
+          require(_amount <= publicLimit, "Limits Exhausted");
           // Transfer required brain tokens to mint a brain
             transferTokens(sosFee); 
           // Initiate permaburn from the contract
             burn(sosFee, toll);
 
-            SpinATale();
+            SpinATale(_amount);
         }
     }
 
