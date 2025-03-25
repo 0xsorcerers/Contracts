@@ -21,6 +21,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint256 public multiplier1 = 5;
     uint256 public multiplier2 = 1;
     uint256 public multiplier3 = 1;
+    uint256 public supplyCap = 3333;
     string public Author = "undoxxed";
     bool public baseURItype = false; 
     bool public paused = false; 
@@ -79,6 +80,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function SpinATale() internal {
         uint256 currentSupply = totalSupply();
+        require(currentSupply < supplyCap, "Max Exceeded");
         uint256 tokenId = currentSupply + 1;
         
         // Conditional Mint to the Spartan Reserve for the Sparta of Sonic GambleFi app
@@ -107,7 +109,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function mint() public payable nonReentrant {
         require(!paused, "Paused Contract");
-
         if (whitelisted[msg.sender].whitelist) { 
             uint256 talesUnminted = totalMintable();   
             require(talesUnminted > 0, "Insufficient fee");
