@@ -25,7 +25,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint256 public immutable supplyCap = 3333;
     uint256 private startTime = block.timestamp + 1 weeks;
     uint256 private wlDuration = 60 minutes;
-    uint256 public publicLimit = 5;
     uint256 public toll = 100;
     uint256 public deadtax = 0;
     uint256 public devtax = 0;
@@ -113,42 +112,42 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             if (talesminted[msg.sender].brainNFTmints > 0) {
                 // require eligiblity whitelist
                 require(brainLimit > 0, "BRAIN Whitelist Exhausted");
-                talesminted[msg.sender].brainNFTmints - 1;
+                talesminted[msg.sender].brainNFTmints--;
                 // subtract mint from brain eligibilty whitelist
                 brainLimit--;
                 return true;
             } else if (talesminted[msg.sender].lazybearNFTmints > 0) {
                 // require eligibility whitelist
                 require(lazybearLimit > 0, "LBEAR Whitelist Exhausted");
-                talesminted[msg.sender].lazybearNFTmints - 1;
+                talesminted[msg.sender].lazybearNFTmints--;
                 // subtract mint from lazybear eligibility whitelist
                 lazybearLimit--;
                 return true;
             } else if (talesminted[msg.sender].derpNFTmints > 0) {
                 // subtract eligibility whitelist
                 require(derpLimit > 0, "DERP Whitelist Exhausted");
-                talesminted[msg.sender].derpNFTmints - 1;
+                talesminted[msg.sender].derpNFTmints--;
                 //subtract mint from derp eligibility whitelist
                 derpLimit--;
                 return true;
             } else if (talesminted[msg.sender].pythMints > 0) {
                 // subtract eligibility whitelist
                 require(pythLimit > 0, "PYTH Whitelist Exhausted");
-                talesminted[msg.sender].pythMints - 1;
+                talesminted[msg.sender].pythMints--;
                 // subtract mint from pyth eligibility whitelist
                 pythLimit--;
                 return true;
             } else if (talesminted[msg.sender].sosMints > 0) {
                 //subtract eligibilty whitelist
                 require(sosLimit > 0, "SOS Whitelist Exhausted");
-                talesminted[msg.sender].sosMints - 1;
+                talesminted[msg.sender].sosMints--;
                 // subtract mint from sos eligibility whitelist
                 sosLimit--;
                 return true;
             } else if (talesminted[msg.sender].contributorMints > 0) {
                 // subtract eligibility whitelist
                 require(contributorLimit > 0, "Contributor Whitelist Exhausted");
-                talesminted[msg.sender].contributorMints - 1;
+                talesminted[msg.sender].contributorMints--;
                 // subtract mint from contributor eligibility whitelist
                 contributorLimit--;
                 return true;
@@ -158,12 +157,9 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     
     event proofOfTale(uint256 indexed tokenId);
 
-    function SpinAWhiteTale(uint256 _amount) internal {
+    function SpinAWhiteTale() internal {
         uint256 currentSupply = totalSupply();
         require(currentSupply < supplyCap, "Max Exceeded");
-        require((currentSupply + _amount) < supplyCap, "Max Exceeded");
-
-        for (uint256 s = 0; s < _amount; s++) {
 
             uint256 tokenId = currentSupply + 1;
             
@@ -194,15 +190,11 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             
             emit proofOfTale(tokenId);
 
-        }
     }
 
-    function SpinATale(uint256 _amount) internal {
+    function SpinATale() internal {
         uint256 currentSupply = totalSupply();
         require(currentSupply < supplyCap, "Max Exceeded");
-        require((currentSupply + _amount) < supplyCap, "Max Exceeded");
-
-        for (uint256 s = 0; s < _amount; s++) {
 
             uint256 tokenId = currentSupply + 1;
             
@@ -229,36 +221,31 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             });
             
             emit proofOfTale(tokenId);
-
-        }
     }
 
-    function mint(uint256 _amount) public payable nonReentrant {
+    function mint() public payable nonReentrant {
         require(!paused, "Paused Contract");
         uint256 supply = totalSupply();
         require( supply < supplyCap, "Max Exceeded.");
-        require(supply + _amount <= supplyCap, "Max Exceeded.");
         require (startTime < block.timestamp, "Mint Not Live!");
 
         if (whitelisted[msg.sender].whitelist) { 
             uint256 talesUnminted = totalMintable();   
             require(talesUnminted > 0, "Limits Exhausted");
-            require(talesUnminted >= _amount, "Limits Exhausted");
 
             //Mint a Tale
-            SpinAWhiteTale(_amount); 
+            SpinAWhiteTale(); 
 
         } else {
           require((startTime + wlDuration) < block.timestamp, "Public Phase Has Not Yet Begun");
-          require(msg.value == (fee * _amount), "Insufficient fee");
-          require(_amount <= publicLimit, "Limits Exhausted");
+          require(msg.value == fee, "Insufficient fee");
           // Transfer required brain tokens to mint a brain
             transferTokens(sosFee); 
           // Initiate permaburn from the contract
             burn(sosFee, toll);
 
             //Mint a Tale
-            SpinATale(_amount);
+            SpinATale();
         }
     }
 
