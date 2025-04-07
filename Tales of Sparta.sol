@@ -19,8 +19,8 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     address private developmentAddress;
     address public burnAddress;
     string public baseURI;
-    uint256 public fee = 0 ether;
-    uint256 public sosFee = 25000000000000000000000000000000 ether;
+    uint256 public fee = 100 ether;
+    uint256 public sosFee = 0 ether;
     uint256 public payId = 0;
     uint256 public multiplier1 = 5;
     uint256 public multiplier2 = 1;
