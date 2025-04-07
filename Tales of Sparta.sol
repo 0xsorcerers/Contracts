@@ -88,6 +88,14 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         );
     }
 
+    function whitelistState() internal view returns (bool) {        
+        uint256 talesUnminted = totalMintable();   
+        if (talesUnminted > 0) {
+            return true;
+        } 
+        return false;        
+    }
+
     function totalMintable() internal view returns (uint256) {
         uint256 talesOwned = talesminted[msg.sender].talesmint;
         uint256 talesMintable = whitelisted[msg.sender].brainNFTowner + whitelisted[msg.sender].lazybearNFTowner + whitelisted[msg.sender].derpNFTowner 
@@ -229,10 +237,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         require( supply < supplyCap, "Max Exceeded.");
         require (startTime < block.timestamp, "Mint Not Live!");
 
-        if (whitelisted[msg.sender].whitelist) { 
-            uint256 talesUnminted = totalMintable();   
-            require(talesUnminted > 0, "Limits Exhausted");
-
+        if (whitelistState()) { 
             //Mint a Tale
             SpinAWhiteTale(); 
 
