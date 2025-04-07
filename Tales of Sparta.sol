@@ -117,44 +117,32 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         } 
 
             //Objectively subtract mint from associated whitelist limit
-            if (talesminted[msg.sender].brainNFTmints > 0) {
-                // require eligiblity whitelist
-                require(brainLimit > 0, "BRAIN Whitelist Exhausted");
+            if (talesminted[msg.sender].brainNFTmints > 0 && brainLimit > 0) {
                 talesminted[msg.sender].brainNFTmints--;
                 // subtract mint from brain eligibilty whitelist
                 brainLimit--;
                 return true;
-            } else if (talesminted[msg.sender].lazybearNFTmints > 0) {
-                // require eligibility whitelist
-                require(lazybearLimit > 0, "LBEAR Whitelist Exhausted");
+            } else if (talesminted[msg.sender].lazybearNFTmints > 0 && lazybearLimit > 0) {
                 talesminted[msg.sender].lazybearNFTmints--;
                 // subtract mint from lazybear eligibility whitelist
                 lazybearLimit--;
                 return true;
-            } else if (talesminted[msg.sender].derpNFTmints > 0) {
-                // subtract eligibility whitelist
-                require(derpLimit > 0, "DERP Whitelist Exhausted");
+            } else if (talesminted[msg.sender].derpNFTmints > 0 && derpLimit > 0) {
                 talesminted[msg.sender].derpNFTmints--;
                 //subtract mint from derp eligibility whitelist
                 derpLimit--;
                 return true;
-            } else if (talesminted[msg.sender].pythMints > 0) {
-                // subtract eligibility whitelist
-                require(pythLimit > 0, "PYTH Whitelist Exhausted");
+            } else if (talesminted[msg.sender].pythMints > 0 && pythLimit > 0) {
                 talesminted[msg.sender].pythMints--;
                 // subtract mint from pyth eligibility whitelist
                 pythLimit--;
                 return true;
-            } else if (talesminted[msg.sender].sosMints > 0) {
-                //subtract eligibilty whitelist
-                require(sosLimit > 0, "SOS Whitelist Exhausted");
+            } else if (talesminted[msg.sender].sosMints > 0 && sosLimit > 0) {
                 talesminted[msg.sender].sosMints--;
                 // subtract mint from sos eligibility whitelist
                 sosLimit--;
                 return true;
-            } else if (talesminted[msg.sender].contributorMints > 0) {
-                // subtract eligibility whitelist
-                require(contributorLimit > 0, "Contributor Whitelist Exhausted");
+            } else if (talesminted[msg.sender].contributorMints > 0 && contributorLimit > 0) {
                 talesminted[msg.sender].contributorMints--;
                 // subtract mint from contributor eligibility whitelist
                 contributorLimit--;
