@@ -22,9 +22,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint256 public fee = 100 ether;
     uint256 public sosFee = 0 ether;
     uint256 public payId = 0;
-    uint256 public multiplier1 = 5;
-    uint256 public multiplier2 = 1;
-    uint256 public multiplier3 = 1;
     uint256 public supplyCap = 3333;
     uint256 private startTime = block.timestamp + 1 weeks;
     uint256 private wlDuration = 60 minutes;
@@ -81,8 +78,8 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function totalMintable() internal view returns (uint256) {
         uint256 talesOwned = talesminted[msg.sender].talesmint;
-        uint256 talesMintable = (whitelisted[msg.sender].brainNFTowner * multiplier1) + (whitelisted[msg.sender].lazybearNFTowner * multiplier2) + 
-            ((whitelisted[msg.sender].derpNFTowner * multiplier3) + whitelisted[msg.sender].sosContributor + whitelisted[msg.sender].earlyContributor);
+        uint256 talesMintable = whitelisted[msg.sender].brainNFTowner + whitelisted[msg.sender].lazybearNFTowner + 
+            whitelisted[msg.sender].derpNFTowner + whitelisted[msg.sender].sosContributor + whitelisted[msg.sender].earlyContributor;
         uint256 talesUnminted = talesMintable - talesOwned;
           require(talesOwned <= talesMintable, "failsafe");
         return talesUnminted;
@@ -175,7 +172,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
 
     function setValues (uint256 _fee, uint256 _sosFee, uint256 _payId, uint256[] calldata _taxes, 
-    uint256 _startTime, uint256 _wlDuration, uint256 _publicLimit, uint256[] calldata _multipliers) external onlySpartanDAO() {
+    uint256 _startTime, uint256 _wlDuration, uint256 _publicLimit) external onlySpartanDAO() {
         fee = _fee;
         sosFee = _sosFee;
         payId = _payId;
@@ -185,9 +182,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         startTime = block.timestamp + (_startTime * 1 days);
         wlDuration = _wlDuration * 1 minutes;
         publicLimit = _publicLimit;
-        multiplier1 = _multipliers[0];
-        multiplier2 = _multipliers[1];
-        multiplier3 = _multipliers[2];
     }
     
     function changeOwner(address newOwner) external onlySpartanDAO {
