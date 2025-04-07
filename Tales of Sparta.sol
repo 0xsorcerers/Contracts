@@ -51,6 +51,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         uint256 brainNFTowner;
         uint256 lazybearNFTowner;
         uint256 derpNFTowner;
+        uint256 sosContributor;
         uint256 earlyContributor;
     }
 
@@ -80,7 +81,8 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function totalMintable() internal view returns (uint256) {
         uint256 talesOwned = talesminted[msg.sender].talesmint;
-        uint256 talesMintable = (whitelisted[msg.sender].brainNFTowner * multiplier1) + (whitelisted[msg.sender].lazybearNFTowner * multiplier2) + ((whitelisted[msg.sender].derpNFTowner * multiplier3) + whitelisted[msg.sender].earlyContributor);
+        uint256 talesMintable = (whitelisted[msg.sender].brainNFTowner * multiplier1) + (whitelisted[msg.sender].lazybearNFTowner * multiplier2) + 
+            ((whitelisted[msg.sender].derpNFTowner * multiplier3) + whitelisted[msg.sender].sosContributor + whitelisted[msg.sender].earlyContributor);
         uint256 talesUnminted = talesMintable - talesOwned;
           require(talesOwned <= talesMintable, "failsafe");
         return talesUnminted;
@@ -92,6 +94,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         uint256 currentSupply = totalSupply();
         require(currentSupply < supplyCap, "Max Exceeded");
         require((currentSupply + _amount) < supplyCap, "Max Exceeded");
+        require(talesminted[msg.sender].talesmint < publicLimit, "Max Exceeded");
 
         for (uint256 s = 0; s < _amount; s++) {
 
@@ -278,6 +281,13 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
     }
 
+    function addToSosWhitelist(address[] calldata _address, uint256[] calldata _amount) external onlySpartanDAO {
+        for (uint256 i = 0; i < _address.length; i++) {
+            whitelisted[_address[i]].whitelist = true;
+            whitelisted[_address[i]].sosContributor = _amount[i];
+        }
+    }
+
     function addToEarlyWhitelist(address[] calldata _address, uint256[] calldata _amount) external onlySpartanDAO {
         for (uint256 i = 0; i < _address.length; i++) {
             whitelisted[_address[i]].whitelist = true;
@@ -297,6 +307,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             whitelisted[_address[i]].brainNFTowner = 0;
             whitelisted[_address[i]].lazybearNFTowner = 0;
             whitelisted[_address[i]].derpNFTowner = 0;
+            whitelisted[_address[i]].sosContributor = 0;
             whitelisted[_address[i]].earlyContributor = 0;
         }
     }
