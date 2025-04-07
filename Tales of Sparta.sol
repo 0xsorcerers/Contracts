@@ -30,6 +30,12 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint256 private deadtax;
     uint256 private devtax;
     uint256 public TotalBurns = 0;
+    uint256 derpLimit = 100;
+    uint256 lazybearLimit = 100;
+    uint256 brainLimit = 100;
+    uint256 sosLimit = 100;
+    uint256 pythLimit = 70;
+    uint256 contributorLimit = 30;
     string public Author = "undoxxed";
     bool public baseURItype = false; 
     bool public paused = false; 
@@ -48,6 +54,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         uint256 brainNFTowner;
         uint256 lazybearNFTowner;
         uint256 derpNFTowner;
+        uint256 pythCommunity;
         uint256 sosContributor;
         uint256 earlyContributor;
     }
@@ -58,6 +65,12 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     struct TalesMinted {
         uint256 talesmint;
+        uint256 brainNFTmints;
+        uint256 lazybearNFTmints;
+        uint256 derpNFTmints;
+        uint256 pythMints;
+        uint256 sosMints;
+        uint256 contributorMints;
     }
 
     //Array
@@ -78,14 +91,114 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     function totalMintable() internal view returns (uint256) {
         uint256 talesOwned = talesminted[msg.sender].talesmint;
-        uint256 talesMintable = whitelisted[msg.sender].brainNFTowner + whitelisted[msg.sender].lazybearNFTowner + 
-            whitelisted[msg.sender].derpNFTowner + whitelisted[msg.sender].sosContributor + whitelisted[msg.sender].earlyContributor;
+        uint256 talesMintable = whitelisted[msg.sender].brainNFTowner + whitelisted[msg.sender].lazybearNFTowner + whitelisted[msg.sender].derpNFTowner 
+            + whitelisted[msg.sender].pythCommunity + whitelisted[msg.sender].sosContributor + whitelisted[msg.sender].earlyContributor;
         uint256 talesUnminted = talesMintable - talesOwned;
           require(talesOwned <= talesMintable, "failsafe");
         return talesUnminted;
     }
+
+    function limitCompliance() internal returns (bool) {
+        if (talesminted[msg.sender].talesmint > 0) {
+            //Objectively subtract mint from associated whitelist limit
+            if (talesminted[msg.sender].brainNFTmints > 0) {
+                // require eligiblity whitelist
+                require(brainLimit > 0, "BRAIN Whitelist Exhausted");
+                talesminted[msg.sender].brainNFTmints - 1;
+                // subtract mint from brain eligibilty whitelist
+                brainLimit--;
+                return true;
+            } else if (talesminted[msg.sender].lazybearNFTmints > 0) {
+                // require eligibility whitelist
+                require(lazybearLimit > 0, "LBEAR Whitelist Exhausted");
+                talesminted[msg.sender].lazybearNFTmints - 1;
+                // subtract mint from lazybear eligibility whitelist
+                lazybearLimit--;
+                return true;
+            } else if (talesminted[msg.sender].derpNFTmints > 0) {
+                // subtract eligibility whitelist
+                require(derpLimit > 0, "DERP Whitelist Exhausted");
+                talesminted[msg.sender].derpNFTmints - 1;
+                //subtract mint from derp eligibility whitelist
+                derpLimit--;
+                return true;
+            } else if (talesminted[msg.sender].pythMints > 0) {
+                // subtract eligibility whitelist
+                require(pythLimit > 0, "PYTH Whitelist Exhausted");
+                talesminted[msg.sender].pythMints - 1;
+                // subtract mint from pyth eligibility whitelist
+                pythLimit--;
+                return true;
+            } else if (talesminted[msg.sender].sosMints > 0) {
+                //subtract eligibilty whitelist
+                require(sosLimit > 0, "SOS Whitelist Exhausted");
+                talesminted[msg.sender].sosMints - 1;
+                // subtract mint from sos eligibility whitelist
+                sosLimit--;
+                return true;
+            } else if (talesminted[msg.sender].contributorMints > 0) {
+                // subtract eligibility whitelist
+                require(contributorLimit > 0, "Contributor Whitelist Exhausted");
+                talesminted[msg.sender].contributorMints - 1;
+                // subtract mint from contributor eligibility whitelist
+                contributorLimit--;
+                return true;
+            }
+            return false;
+        } else {            
+            // initialize snapshot record of talesMint
+        talesminted[msg.sender].talesmint = 0;
+        talesminted[msg.sender].brainNFTmints = whitelisted[msg.sender].brainNFTowner;
+        talesminted[msg.sender].lazybearNFTmints = whitelisted[msg.sender].lazybearNFTowner;
+        talesminted[msg.sender].derpNFTmints = whitelisted[msg.sender].derpNFTowner;
+        talesminted[msg.sender].pythMints = whitelisted[msg.sender].pythCommunity;
+        talesminted[msg.sender].sosMints = whitelisted[msg.sender].sosContributor;
+        talesminted[msg.sender].contributorMints = whitelisted[msg.sender].earlyContributor;
+        return true;
+        }
+    }
     
     event proofOfTale(uint256 indexed tokenId);
+
+    function SpinAWhiteTale(uint256 _amount) internal {
+        uint256 currentSupply = totalSupply();
+        require(currentSupply < supplyCap, "Max Exceeded");
+        require((currentSupply + _amount) < supplyCap, "Max Exceeded");
+        require(talesminted[msg.sender].talesmint < publicLimit, "Max Exceeded");
+
+        for (uint256 s = 0; s < _amount; s++) {
+
+            uint256 tokenId = currentSupply + 1;
+            
+            // Conditional Mint to the Spartan Reserve for the Sparta of Sonic GambleFi app
+            if (currentSupply > 0 && currentSupply % 10 == 0) {
+                _mint(spartanDAO, tokenId);
+                //Map it
+                blacklisted[tokenId] = BlackList({
+                    blacklist: false
+                });
+                talesminted[spartanDAO].talesmint++;
+                emit proofOfTale(tokenId);
+                tokenId++;  // Increment for the next mint
+            }
+
+            //Require Whitelist Limit Compliance
+            require(limitCompliance(), "Not Eligible to Mint");
+
+            // Regular Mint
+            _mint(msg.sender, tokenId);
+            //record mint
+            talesminted[msg.sender].talesmint++;
+            
+            //Map it
+            blacklisted[tokenId] = BlackList({
+                blacklist: false
+            });
+            
+            emit proofOfTale(tokenId);
+
+        }
+    }
 
     function SpinATale(uint256 _amount) internal {
         uint256 currentSupply = totalSupply();
@@ -108,9 +221,10 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
                 emit proofOfTale(tokenId);
                 tokenId++;  // Increment for the next mint
             }
-            
+
             // Regular Mint
             _mint(msg.sender, tokenId);
+            //record mint
             talesminted[msg.sender].talesmint++;
             
             //Map it
@@ -135,7 +249,8 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             require(talesUnminted > 0, "Limits Exhausted");
             require(talesUnminted >= _amount, "Limits Exhausted");
 
-            SpinATale(_amount); 
+            //Mint a Tale
+            SpinAWhiteTale(_amount); 
 
         } else {
           require((startTime + wlDuration) < block.timestamp, "Public Phase Has Not Yet Begun");
@@ -146,6 +261,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
           // Initiate permaburn from the contract
             burn(sosFee, toll);
 
+            //Mint a Tale
             SpinATale(_amount);
         }
     }
@@ -172,7 +288,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     function setValues (uint256 _fee, uint256 _sosFee, uint256 _payId, uint256[] calldata _taxes, 
-    uint256 _startTime, uint256 _wlDuration, uint256 _publicLimit) external onlySpartanDAO() {
+    uint256 _startTime, uint256 _wlDuration, uint256 _publicLimit, uint256[] calldata _mintLimits) external onlySpartanDAO() {
         fee = _fee;
         sosFee = _sosFee;
         payId = _payId;
@@ -182,6 +298,12 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         startTime = block.timestamp + (_startTime * 1 days);
         wlDuration = _wlDuration * 1 minutes;
         publicLimit = _publicLimit;
+        brainLimit = _mintLimits[0];
+        derpLimit = _mintLimits[1];
+        lazybearLimit = _mintLimits[2];
+        pythLimit = _mintLimits[3];
+        sosLimit = _mintLimits[4];
+        contributorLimit = _mintLimits[5];
     }
     
     function changeOwner(address newOwner) external onlySpartanDAO {
@@ -275,6 +397,13 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
     }
 
+    function addToPythWhitelist(address[] calldata _address, uint256[] calldata _amount) external onlySpartanDAO {
+        for (uint256 i = 0; i < _address.length; i++) {
+            whitelisted[_address[i]].whitelist = true;
+            whitelisted[_address[i]].pythCommunity = _amount[i];
+        }
+    }
+
     function addToSosWhitelist(address[] calldata _address, uint256[] calldata _amount) external onlySpartanDAO {
         for (uint256 i = 0; i < _address.length; i++) {
             whitelisted[_address[i]].whitelist = true;
@@ -301,6 +430,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             whitelisted[_address[i]].brainNFTowner = 0;
             whitelisted[_address[i]].lazybearNFTowner = 0;
             whitelisted[_address[i]].derpNFTowner = 0;
+            whitelisted[_address[i]].pythCommunity = 0;
             whitelisted[_address[i]].sosContributor = 0;
             whitelisted[_address[i]].earlyContributor = 0;
         }
