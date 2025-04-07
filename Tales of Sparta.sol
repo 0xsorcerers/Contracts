@@ -99,7 +99,16 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     function limitCompliance() internal returns (bool) {
-        if (talesminted[msg.sender].talesmint > 0) {
+        if (talesminted[msg.sender].talesmint < 1) {          
+            // initialize snapshot record of talesMint
+        talesminted[msg.sender].brainNFTmints = whitelisted[msg.sender].brainNFTowner;
+        talesminted[msg.sender].lazybearNFTmints = whitelisted[msg.sender].lazybearNFTowner;
+        talesminted[msg.sender].derpNFTmints = whitelisted[msg.sender].derpNFTowner;
+        talesminted[msg.sender].pythMints = whitelisted[msg.sender].pythCommunity;
+        talesminted[msg.sender].sosMints = whitelisted[msg.sender].sosContributor;
+        talesminted[msg.sender].contributorMints = whitelisted[msg.sender].earlyContributor;
+        } 
+
             //Objectively subtract mint from associated whitelist limit
             if (talesminted[msg.sender].brainNFTmints > 0) {
                 // require eligiblity whitelist
@@ -145,17 +154,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
                 return true;
             }
             return false;
-        } else {            
-            // initialize snapshot record of talesMint
-        talesminted[msg.sender].talesmint = 0;
-        talesminted[msg.sender].brainNFTmints = whitelisted[msg.sender].brainNFTowner;
-        talesminted[msg.sender].lazybearNFTmints = whitelisted[msg.sender].lazybearNFTowner;
-        talesminted[msg.sender].derpNFTmints = whitelisted[msg.sender].derpNFTowner;
-        talesminted[msg.sender].pythMints = whitelisted[msg.sender].pythCommunity;
-        talesminted[msg.sender].sosMints = whitelisted[msg.sender].sosContributor;
-        talesminted[msg.sender].contributorMints = whitelisted[msg.sender].earlyContributor;
-        return true;
-        }
     }
     
     event proofOfTale(uint256 indexed tokenId);
@@ -183,7 +181,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
             }
 
             //Require Whitelist Limit Compliance
-            require(limitCompliance(), "Not Eligible to Mint");
+            require(limitCompliance(), "Failed Limit Compliance");
 
             // Regular Mint
             _mint(msg.sender, tokenId);
