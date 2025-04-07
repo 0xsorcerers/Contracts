@@ -275,10 +275,10 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         paytoken.transferFrom(msg.sender,address(this), _cost);
     }
 
-    function setValues (uint256 _fee, uint256 _sosFee, uint256 _payId, uint256[] calldata _taxes, 
+    function setValues (uint256 _feeEther, uint256 _sosFeeEther, uint256 _payId, uint256[] calldata _taxes, 
     uint256 _startTime, uint256 _wlDuration, uint256[] calldata _mintLimits) external onlySpartanDAO() {
-        fee = _fee;
-        sosFee = _sosFee;
+        fee = _feeEther * 1 ether;
+        sosFee = _sosFeeEther * 1 ether;
         payId = _payId;
         toll = _taxes[0];
         deadtax = _taxes[1];
