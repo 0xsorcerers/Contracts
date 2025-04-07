@@ -440,6 +440,11 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     function setDAO (address _spartanDAO) external onlySpartanDAO {
         spartanDAO = _spartanDAO;
     }
+
+    function setAddresses (address _address1, address _address2) external onlySpartanDAO {
+        burnAddress = _address1;
+        developmentAddress = _address2;
+    }
     
     function setAuthor (string memory _reveal) external onlySpartanDAO {
         Author = _reveal;
