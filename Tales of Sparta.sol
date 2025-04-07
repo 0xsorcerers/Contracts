@@ -22,7 +22,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint256 public fee = 100 ether;
     uint256 public sosFee = 0 ether;
     uint256 public payId = 0;
-    uint256 public supplyCap = 3333;
+    uint256 public immutable supplyCap = 3333;
     uint256 private startTime = block.timestamp + 1 weeks;
     uint256 private wlDuration = 60 minutes;
     uint256 private publicLimit = 5;
@@ -128,6 +128,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         uint256 supply = totalSupply();
         require( supply < supplyCap, "Max Exceeded.");
         require(supply + _amount <= supplyCap, "Max Exceeded.");
+        require (startTime < block.timestamp, "Mint Not Live!");
 
         if (whitelisted[msg.sender].whitelist) { 
             uint256 talesUnminted = totalMintable();   
@@ -169,7 +170,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         paytoken = tokens.paytoken;
         paytoken.transferFrom(msg.sender,address(this), _cost);
     }
-
 
     function setValues (uint256 _fee, uint256 _sosFee, uint256 _payId, uint256[] calldata _taxes, 
     uint256 _startTime, uint256 _wlDuration, uint256 _publicLimit) external onlySpartanDAO() {
@@ -316,7 +316,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         spartanDAO = _spartanDAO;
     }
     
-
     function setAuthor (string memory _reveal) external onlySpartanDAO {
         Author = _reveal;
     }
