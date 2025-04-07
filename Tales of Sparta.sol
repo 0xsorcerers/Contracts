@@ -88,9 +88,9 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         );
     }
 
-    function whitelistState() internal view returns (bool) {        
+    function whitelistState() internal returns (bool) {        
         uint256 talesUnminted = totalMintable();   
-        if (talesUnminted > 0) {
+        if (talesUnminted > 0 && limitCompliance()) {
             return true;
         } 
         return false;        
@@ -147,7 +147,7 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
                 // subtract mint from contributor eligibility whitelist
                 contributorLimit--;
                 return true;
-            }
+            }            
             return false;
     }
     
@@ -170,9 +170,6 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
                 emit proofOfTale(tokenId);
                 tokenId++;  // Increment for the next mint
             }
-
-            //Require Whitelist Limit Compliance
-            require(limitCompliance(), "Failed Limit Compliance");
 
             // Regular Mint
             _mint(msg.sender, tokenId);
