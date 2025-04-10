@@ -88,7 +88,8 @@ contract Tales_of_Sparta is ERC721Enumerable, Ownable, ReentrancyGuard {
         );
     }
 
-    function whitelistState() internal returns (bool) {        
+    function whitelistState() internal returns (bool) {
+        if (!whitelisted[msg.sender].whitelist) return false;     
         uint256 talesUnminted = totalMintable();   
         if (talesUnminted > 0 && limitCompliance()) {
             return true;
