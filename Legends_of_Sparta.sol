@@ -15,21 +15,21 @@ interface ITalesOfSparta {
 }
 
 contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
-    event LegendaryTransfer (address indexed from, address to, uint amountUSD, uint amountWei);
+    event LegendaryTransfer (address indexed from, address to, uint fee, uint amountWei);
 
-    constructor(address _pyth, address _spartanDAO, address _talesOfSparta, uint256 _amountInWei, 
+    constructor(address _pyth, address _spartanDAO, address _talesOfSparta, uint256 _feeInWei, 
     bytes32 _sonicPriceId, address _entropy, address _entropyProvider) {
         pyth = IPyth(_pyth);
         sonicPriceId = _sonicPriceId;
         spartanDAO = _spartanDAO;
         talesOfSparta = _talesOfSparta;
-        amountUSD = _amountInWei;
+        fee = _feeInWei;
         entropy = IEntropy(_entropy);
         entropyProvider = _entropyProvider;
     }
     
     event proofOfLegend(uint256 indexed id, address indexed from);
-    event LegendaryTransfer (address indexed from, uint256 indexed amountUSD, uint256 indexed seeded);
+    event LegendaryTransfer (address indexed from, uint256 indexed fee, uint256 indexed seeded);
     event RandomNumberRequest(bytes32 indexed userRandomNumber, address indexed sender, uint64 indexed sequenceNumber);
     event RandomNumberResult(uint64 sequenceNumber, uint8 result);
 
@@ -43,12 +43,11 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     address public bobbAddress;
     address public talesOfSparta;
     address private developmentAddress;
-    uint256 public amountUSD;
+    uint256 public fee;
     uint256 public reseed = 10;
     uint256 public multiple = 2;
     uint256 public sosMultiple = 100000;
-    uint256 public fee = 2 ether;
-    uint256 public sosFee = 0 ether;
+    uint256 public age = 10;
     uint256 public payId = 0;
     uint256 public burntoll = 10;
     uint256 public deadtax = 0;
@@ -176,7 +175,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint updateFee = pyth.getUpdateFee(updateData);
         pyth.updatePriceFeeds{value: updateFee}(updateData);
 
-        PythStructs.Price memory currentSonicPrice = pyth.getPriceNoOlderThan(sonicPriceId, 10);
+        PythStructs.Price memory currentSonicPrice = pyth.getPriceNoOlderThan(sonicPriceId, age);
 
         require(currentSonicPrice.price >= 0, "Price should be positive.");
 
@@ -184,11 +183,11 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
         if (totalSonicExpo >= 0) {
             // Divide by (price * 10^totalSonicExpo)
-            amountWei = (amountUSD * 1e18) / (uint(uint64(currentSonicPrice.price)) * (10 ** uint32(totalSonicExpo)));
+            amountWei = (fee * 1e18) / (uint(uint64(currentSonicPrice.price)) * (10 ** uint32(totalSonicExpo)));
         } else {
             // If totalSonicExpo is negative (unlikely since expo is usually -7 to +7), 
             // multiply by 10^|totalSonicExpo| (but this case shouldn't happen with typical expo values)
-            amountWei = (amountUSD * 1e18 * (10 ** uint32(-totalSonicExpo))) / uint(uint64(currentSonicPrice.price));
+            amountWei = (fee * 1e18 * (10 ** uint32(-totalSonicExpo))) / uint(uint64(currentSonicPrice.price));
         }
     
         //TOS NFT Checker
@@ -266,12 +265,12 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         entropyProvider = _entropyProvider;
     }
 
-    function setValues (uint256 _feeInWei, uint256 _sosFeeInWei, uint256 _payId, uint256 _amountInWei,
+    function setValues (uint256 _feeInWei, uint256 _age, uint256 _payId, uint256 _amountInWei,
      uint256[] calldata _taxes) external onlySpartanDAO() {
         fee = _feeInWei;
-        sosFee = _sosFeeInWei;
+        age = _age;
         payId = _payId;
-        amountUSD = _amountInWei;
+        fee = _amountInWei;
         burntoll = _taxes[0];
         deadtax = _taxes[1];
         devtax = _taxes[2];
