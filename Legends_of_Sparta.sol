@@ -264,12 +264,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         entropyProvider = _entropyProvider;
     }
 
-    function setValues (uint256 _feeInWei, uint256 _age, uint256 _payId, uint256 _amountInWei,
-     uint256[] calldata _taxes) external onlySpartanDAO() {
+    function setValues (uint256 _feeInWei, uint256 _age, uint256 _payId, uint256[] calldata _taxes) external onlySpartanDAO() {
         fee = _feeInWei;
         age = _age;
         payId = _payId;
-        fee = _amountInWei;
         burntoll = _taxes[0];
         deadtax = _taxes[1];
         devtax = _taxes[2];
