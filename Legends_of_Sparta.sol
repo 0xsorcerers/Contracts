@@ -205,7 +205,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 uint256 requiredAmount = amountWei * sosMultiple;
                 transferTokens(requiredAmount); 
                 //Initiate a pecentage burn from the contract       
-                burn(amountWei, burntoll);            
+                burn(requiredAmount, burntoll);            
                 // return excess funds
                 payable(msg.sender).transfer(msg.value - amountWei - updateFee - _fee);
 
