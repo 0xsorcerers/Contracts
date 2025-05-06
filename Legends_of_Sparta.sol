@@ -45,7 +45,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public fee;
     uint256 public reseed = 10;
     uint256 public multiple = 2;
-    uint256 public sosMultiple = 100000;
+    uint256 public sosMultiple = 1000000;
     uint256 public age = 120;
     uint256 public payId = 0;
     uint256 public burntoll = 10;
@@ -134,17 +134,15 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         emit RandomNumberResult(sequenceNumber, result);
 
         if (legendary[sequenceNumber].indexer == result) {
-            address winner = legendary[sequenceNumber].caller;   
-            address payable _winner = payable(winner);
-            address payable _devved = payable(developmentAddress);
+            address winner = legendary[sequenceNumber].caller; 
             uint256 balance = address(this).balance;
             if (balance > 0) {
                 uint256 seed = (balance * reseed) / 100;
                 uint256 amountWon = balance - seed;
                 uint256 winfee = (amountWon * devtax) / 100;
                 uint256 amountPayable = amountWon - winfee;
-                _winner.transfer(amountPayable);
-                _devved.transfer(winfee); 
+                payable(winner).transfer(amountPayable);
+                payable(developmentAddress).transfer(winfee); 
                 pastwinners[era].era = era;
                 pastwinners[era].winner = msg.sender;
                 pastwinners[era].amount = amountWon;
@@ -163,7 +161,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
     receive() external payable {}
     
-    function sendToLegend(uint8 _index, uint256 _tale, bytes32 userRandomNumber, bytes[] calldata updateData) external payable nonReentrant { 
+    function sendToLegend(uint8 _index, uint256 _tale, bytes32 userRandomNumber, bytes[] calldata updateData) public payable nonReentrant { 
         require(!paused, "Paused Contract");
         uint256 tokenId = getTalesOfSparta(_tale);
 
@@ -193,33 +191,43 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         if (tokenId > 0) {
             //LOGIC FOR TALES OF SPARTA OWNER
             // transfer S needed for gameplay
-            require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee"); 
-            payable(msg.sender).transfer(msg.value - amountWei - updateFee - _fee);
+            require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");             
+            uint256 excess = msg.value - amountWei - updateFee - _fee;
+            if (excess > 0) {
+            payable(msg.sender).transfer(excess);
+            }
 
         } else {
             // LOGIC FOR SOS HOLDERS
             if (feeType) {
                 // Require S needed for gameplay
-                require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");  
+                uint256 totalFees = updateFee + _fee;
+                require (msg.value - totalFees >= amountWei, "Insufficient fee");  
                 // Transfer multiples of SOS for required deposit and burn is required
                 uint256 requiredAmount = amountWei * sosMultiple;
                 transferTokens(requiredAmount); 
                 //Initiate a pecentage burn from the contract       
-                burn(requiredAmount, burntoll);            
+                burn(requiredAmount, burntoll); 
+                uint256 excess = msg.value - (amountWei + totalFees);         
                 // return excess funds
-                payable(msg.sender).transfer(msg.value - amountWei - updateFee - _fee);
+                if (excess > 0) {
+                    payable(msg.sender).transfer(excess);
+                }
 
             } else {
                 // Require multiple of S need for gameplay
                 uint256 requiredAmount = amountWei * multiple;
-                require (msg.value - updateFee - _fee >= requiredAmount, "Insufficient fee");
+                uint256 totalFees = updateFee + _fee;
+                require(msg.value - totalFees >= requiredAmount, "Insufficient fee");
+                
                 // Transfer extra amount to bobbAddress
-                address payable _bobb = payable(bobbAddress);
-                uint256 prepBobbTransfer = requiredAmount - amountWei;
-                _bobb.transfer(prepBobbTransfer);
+                payable(bobbAddress).transfer(requiredAmount - amountWei);
+                
                 // Return Excess funds
-                payable(msg.sender).transfer(msg.value - requiredAmount - updateFee - _fee);
-
+                uint256 excess = msg.value - (requiredAmount + totalFees);
+                if (excess > 0) {
+                    payable(msg.sender).transfer(excess);
+                }
             }
         }
 
@@ -324,6 +332,5 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     function setDAO (address _spartanDAO) external onlySpartanDAO {
         spartanDAO = _spartanDAO;
     }
-
 
 }
