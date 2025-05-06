@@ -47,6 +47,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public multiple = 2;
     uint256 public sosMultiple = 1000000;
     uint256 public age = 120;
+    uint256 public challengers = 18;
     uint256 public payId = 0;
     uint256 public burntoll = 10;
     uint256 public deadtax = 0;
@@ -129,7 +130,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint256 randomValue = uint256(randomNumber);
         
         // Calculate the result between 1 and 18
-        uint8 result = uint8((randomValue % 18) + 1);
+        uint8 result = uint8((randomValue % challengers) + 1);
         
         emit RandomNumberResult(sequenceNumber, result);
 
@@ -272,9 +273,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         entropyProvider = _entropyProvider;
     }
 
-    function setValues (uint256 _feeInWei, uint256 _age, uint256 _payId, uint256[] calldata _taxes) external onlySpartanDAO() {
+    function setValues (uint256 _feeInWei, uint256 _age, uint256 _challengers, uint256 _payId, uint256[] calldata _taxes) external onlySpartanDAO() {
         fee = _feeInWei;
         age = _age;
+        challengers = _challengers;
         payId = _payId;
         burntoll = _taxes[0];
         deadtax = _taxes[1];
