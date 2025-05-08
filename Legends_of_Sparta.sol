@@ -52,7 +52,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public burntoll = 10;
     uint256 public deadtax = 0;
     uint256 public devtax = 0;
-    uint256 public platformFee = 15;
+    uint256 public platformFee = 10;
     uint256 public TotalBurns = 0;
     uint256 public TotalPlays = 0;
     uint256 public era = 1;
@@ -73,6 +73,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     struct LegendInfo {
         uint8 indexer;
         address caller;
+        uint256 platformFee;
     }
 
     struct WinnersList {
@@ -141,7 +142,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             if (balance > 0) {
                 uint256 seed = (balance * reseed) / 100;
                 uint256 amountWon = balance - seed;
-                uint256 winfee = (amountWon * platformFee) / 100;
+                uint256 winfee = (amountWon * legendary[sequenceNumber].platformFee) / 100;
                 uint256 amountPayable = amountWon - winfee;
                 payable(winner).transfer(amountPayable);
                 payable(developmentAddress).transfer(winfee); 
@@ -168,6 +169,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint256 tokenId = getTalesOfSparta(_tale);
 
         uint amountWei;
+        uint256 platformfee;
 
         // call entropy oracle
         uint256 _fee = entropy.getFee(entropyProvider);
@@ -193,7 +195,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         if (tokenId > 0) {
             //LOGIC FOR TALES OF SPARTA OWNER
             // transfer S needed for gameplay
-            require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");             
+            require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");
+            platformfee = platformFee; 
             uint256 excess = msg.value - amountWei - updateFee - _fee;
             if (excess > 0) {
             payable(msg.sender).transfer(excess);
@@ -209,8 +212,9 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 uint256 requiredAmount = amountWei * sosMultiple;
                 transferTokens(requiredAmount); 
                 //Initiate a pecentage burn from the contract       
-                burn(requiredAmount, burntoll); 
-                uint256 excess = msg.value - (amountWei + totalFees);         
+                burn(requiredAmount, burntoll);    
+                platformfee = platformFee * 2;      
+                uint256 excess = msg.value - (amountWei + totalFees);
                 // return excess funds
                 if (excess > 0) {
                     payable(msg.sender).transfer(excess);
@@ -224,6 +228,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 
                 // Transfer extra amount to bobbAddress
                 payable(bobbAddress).transfer(requiredAmount - amountWei);
+                
+                platformfee = platformFee * 2;
                 
                 // Return Excess funds
                 uint256 excess = msg.value - (requiredAmount + totalFees);
@@ -240,6 +246,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
         legendary[sequenceNumber].caller = msg.sender;
         legendary[sequenceNumber].indexer = _index;
+        legendary[sequenceNumber].platformFee = platformfee;
         TotalPlays++;
 
         emit RandomNumberRequest(userRandomNumber, msg.sender, sequenceNumber);
