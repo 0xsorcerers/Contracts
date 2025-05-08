@@ -52,6 +52,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public burntoll = 10;
     uint256 public deadtax = 0;
     uint256 public devtax = 0;
+    uint256 public platformFee = 15;
     uint256 public TotalBurns = 0;
     uint256 public TotalPlays = 0;
     uint256 public era = 1;
@@ -140,7 +141,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             if (balance > 0) {
                 uint256 seed = (balance * reseed) / 100;
                 uint256 amountWon = balance - seed;
-                uint256 winfee = (amountWon * devtax) / 100;
+                uint256 winfee = (amountWon * platformFee) / 100;
                 uint256 amountPayable = amountWon - winfee;
                 payable(winner).transfer(amountPayable);
                 payable(developmentAddress).transfer(winfee); 
@@ -282,8 +283,9 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         deadtax = _taxes[1];
         devtax = _taxes[2];
         reseed = _taxes[3];
-        multiple = _taxes[4];
-        sosMultiple = _taxes[5];
+        platformFee = _taxes[4];
+        multiple = _taxes[5];
+        sosMultiple = _taxes[6];
     } 
     
     function setAddresses (address _burnAddress, address _bobbAddress, address _devAddress,address _talesOfSparta) external onlySpartanDAO {
