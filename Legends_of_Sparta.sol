@@ -14,7 +14,6 @@ interface ITalesOfSparta {
 }
 
 contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
-    event LegendaryTransfer (address indexed from, address to, uint fee, uint amountWei);
 
     constructor(address _pyth, address _spartanDAO, address _talesOfSparta, uint256 _feeInWei, 
     bytes32 _sonicPriceId, address _entropy, address _entropyProvider) {
@@ -27,8 +26,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         entropyProvider = _entropyProvider;
     }
     
-    event proofOfLegend(uint256 indexed id, address indexed from);
-    event LegendaryTransfer (address indexed from, uint256 indexed fee, uint256 indexed seeded);
+    event proofOfLegend(uint256 indexed id, address indexed from, uint256 indexed amountWon, uint256 seeded);
+    event proofOfNumber(address indexed from, bytes32 number, uint256 proof);
     event RandomNumberRequest(bytes32 indexed userRandomNumber, address indexed sender, uint64 indexed sequenceNumber);
     event RandomNumberResult(uint64 sequenceNumber, uint8 result);
 
@@ -116,6 +115,15 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             return 0;
         }
     }
+    
+    function requestRandomNumber() internal view returns (uint8) {
+        // Convert the random number to uint256
+        uint256 randomValue = uint256(keccak256(abi.encodePacked(block.prevrandao, block.timestamp)));
+        
+        // Calculate the result between 1 and 18
+        uint8 result = uint8((randomValue % challengers) + 1);
+        return result;
+    }      
 
     // Get the fee for requesting a random number
     function getRequestFee() public view returns (uint256 fee_) {
@@ -152,7 +160,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 pastwinners[era].timestamp = block.timestamp;
                 TotalAmountWon += amountWon;
                 era++;
-                emit proofOfLegend(era, msg.sender);
+                emit proofOfLegend(era, msg.sender, amountWon, seed);
             }
         }
     }
@@ -164,9 +172,11 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
     receive() external payable {}
     
-    function sendToLegend(uint8 _index, uint256 _tale, bytes32 userRandomNumber, bytes[] calldata updateData) public payable nonReentrant { 
+    function sendToLegend(uint256 _tale, bytes32 userRandomNumber, bytes[] calldata updateData) public payable nonReentrant { 
         require(!paused, "Paused Contract");
         uint256 tokenId = getTalesOfSparta(_tale);
+        uint8 _index = requestRandomNumber();
+        emit proofOfNumber(msg.sender, userRandomNumber, _index);
 
         uint amountWei;
         uint256 platformfee;
@@ -228,7 +238,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 
                 // Transfer extra amount to bobbAddress
                 payable(bobbAddress).transfer(requiredAmount - amountWei);
-                
+
                 platformfee = platformFee * 2;
                 
                 // Return Excess funds
