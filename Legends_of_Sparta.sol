@@ -46,7 +46,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public multiple = 2;
     uint256 public sosMultiple = 1000000;
     uint256 public age = 120;
-    uint256 public challengers = 18;
+    uint256 private challengers = 18;
     uint256 public payId = 0;
     uint256 public burntoll = 10;
     uint256 public deadtax = 0;
