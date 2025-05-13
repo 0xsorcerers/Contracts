@@ -36,10 +36,11 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     IPyth pyth;
     bytes32 sonicPriceId;
 
+    address public talesOfSparta;
     address public spartanDAO; 
     address public burnAddress; 
     address public bobbAddress;
-    address public talesOfSparta;
+    address public stakeAddress;
     address private developmentAddress;
     uint256 public fee;
     uint256 public reseed = 10;
@@ -51,9 +52,12 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public burntoll = 10;
     uint256 public deadtax = 0;
     uint256 public bobbtax = 0;
+    uint256 public staketax = 0;
     uint256 public devtax = 0;
     uint256 public platformFee = 10;
     uint256 public TotalBurns = 0;
+    uint256 public TotalStaked = 0;
+    uint256 public TotalReserved = 0;
     uint256 public TotalPlays = 0;
     uint256 public era = 1;
     uint256 public TotalAmountWon = 0;
@@ -267,16 +271,20 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     function burn(uint256 _burnAmount, uint256 _num) internal {
         uint256 taxed = (_burnAmount * _num)/100 ;
 
-        uint256 dead = (taxed * deadtax)/100;
+        uint256 dead = (taxed * deadtax) / 100;
         uint256 bobb = (taxed * bobbtax) / 100;
-        uint256 dev =  (taxed * devtax)/100;
+        uint256 stake = (taxed * staketax) / 100;
+        uint256 dev =  (taxed * devtax) / 100;
 
         TokenInfo storage tokens = AllowedCrypto[payId];
         IERC20 paytoken;
         paytoken = tokens.paytoken;               
         paytoken.transfer(burnAddress, dead);   
-        paytoken.transfer(bobbAddress, bobb);
+        paytoken.transfer(bobbAddress, bobb); 
+        paytoken.transfer(stakeAddress, stake);
         paytoken.transfer(developmentAddress, dev); 
+        TotalReserved += bobb;
+        TotalStaked += stake;
         TotalBurns += dead;       
     }
     
@@ -302,11 +310,12 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         burntoll = _taxes[0];
         deadtax = _taxes[1];
         bobbtax = _taxes[2];
-        devtax = _taxes[3];
-        reseed = _taxes[4];
-        platformFee = _taxes[5];
-        multiple = _taxes[6];
-        sosMultiple = _taxes[7];
+        staketax = _taxes[3];
+        devtax = _taxes[4];
+        reseed = _taxes[5];
+        platformFee = _taxes[6];
+        multiple = _taxes[7];
+        sosMultiple = _taxes[8];
     } 
     
     function setAddresses (address _burnAddress, address _bobbAddress, address _devAddress,address _talesOfSparta) external onlySpartanDAO {
