@@ -212,7 +212,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             // transfer S needed for gameplay
             require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");
             platformfee = platformFee; 
-            uint256 excess = msg.value - amountWei - updateFee - _fee;
+            uint256 excess = msg.value - (amountWei + updateFee + _fee);
             if (excess > 0) {
             payable(msg.sender).transfer(excess);
             }
