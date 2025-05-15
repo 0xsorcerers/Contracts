@@ -123,8 +123,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     
     function requestRandomNumber() internal view returns (uint8) {
         // Convert the random number to uint256
-        uint256 randomValue = uint256(keccak256(abi.encodePacked(block.prevrandao, block.timestamp)));
-        
+        uint256 randomValue = uint(keccak256(abi.encodePacked(block.prevrandao, block.timestamp, msg.sender)));       
         // Calculate the result between 1 and 18
         uint8 result = uint8((randomValue % challengers) + 1);
         return result;
