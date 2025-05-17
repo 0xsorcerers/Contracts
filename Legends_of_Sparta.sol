@@ -42,6 +42,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     address public bobbAddress;
     address public stakeAddress;
     address private developmentAddress;
+    address private lastAddress;
     uint256 public fee;
     uint256 public reseed = 10;
     uint256 public multiple = 2;
@@ -53,6 +54,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public deadtax = 0;
     uint256 public bobbtax = 0;
     uint256 public staketax = 0;
+    uint256 public lasttax = 0;
     uint256 public devtax = 0;
     uint256 public platformFee = 10;
     uint256 public TotalBurns = 0;
@@ -123,7 +125,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     
     function requestRandomNumber() internal view returns (uint8) {
         // Convert the random number to uint256
-        uint256 randomValue = uint(keccak256(abi.encodePacked(block.prevrandao, block.timestamp, msg.sender)));       
+        uint256 randomValue = uint(keccak256(abi.encodePacked(block.prevrandao, block.timestamp, msg.sender)));
+        
         // Calculate the result between 1 and 18
         uint8 result = uint8((randomValue % challengers) + 1);
         return result;
@@ -261,10 +264,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         legendary[sequenceNumber].caller = msg.sender;
         legendary[sequenceNumber].indexer = _index;
         legendary[sequenceNumber].platformFee = platformfee;
+        lastAddress = msg.sender;
         TotalPlays++;
 
         emit RandomNumberRequest(userRandomNumber, msg.sender, sequenceNumber);
-
     }
 
     function burn(uint256 _burnAmount, uint256 _num) internal {
@@ -273,6 +276,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint256 dead = (taxed * deadtax) / 100;
         uint256 bobb = (taxed * bobbtax) / 100;
         uint256 stake = (taxed * staketax) / 100;
+        uint256 last = (taxed * lasttax) / 100;
         uint256 dev =  (taxed * devtax) / 100;
 
         TokenInfo storage tokens = AllowedCrypto[payId];
@@ -281,6 +285,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         paytoken.transfer(burnAddress, dead);   
         paytoken.transfer(bobbAddress, bobb); 
         paytoken.transfer(stakeAddress, stake);
+        paytoken.transfer(lastAddress, last);
         paytoken.transfer(developmentAddress, dev); 
         TotalReserved += bobb;
         TotalStaked += stake;
