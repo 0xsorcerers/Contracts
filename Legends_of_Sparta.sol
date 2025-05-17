@@ -315,11 +315,12 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         deadtax = _taxes[1];
         bobbtax = _taxes[2];
         staketax = _taxes[3];
-        devtax = _taxes[4];
-        reseed = _taxes[5];
-        platformFee = _taxes[6];
-        multiple = _taxes[7];
-        sosMultiple = _taxes[8];
+        lasttax = _taxes[4];
+        devtax = _taxes[5];
+        reseed = _taxes[6];
+        platformFee = _taxes[7];
+        multiple = _taxes[8];
+        sosMultiple = _taxes[9];
     } 
     
     function setAddresses (address _burnAddress, address _bobbAddress, address _devAddress,address _talesOfSparta) external onlySpartanDAO {
