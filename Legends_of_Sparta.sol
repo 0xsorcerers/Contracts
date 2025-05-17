@@ -59,6 +59,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public platformFee = 10;
     uint256 public TotalBurns = 0;
     uint256 public TotalStaked = 0;
+    uint256 public TotalPaid = 0;
     uint256 public TotalReserved = 0;
     uint256 public TotalPlays = 0;
     uint256 public era = 1;
@@ -289,6 +290,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         paytoken.transfer(developmentAddress, dev); 
         TotalReserved += bobb;
         TotalStaked += stake;
+        TotalPaid += last;
         TotalBurns += dead;       
     }
     
@@ -323,7 +325,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         sosMultiple = _taxes[9];
     } 
     
-    function setAddresses (address _burnAddress, address _bobbAddress, address _devAddress,address _talesOfSparta) external onlySpartanDAO {
+    function setAddresses (address _burnAddress, address _bobbAddress, address _stakeAddress, address _devAddress, address _talesOfSparta) external onlySpartanDAO {
         burnAddress = _burnAddress;
         bobbAddress = _bobbAddress;
         developmentAddress = _devAddress;
