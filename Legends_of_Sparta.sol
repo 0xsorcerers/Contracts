@@ -327,6 +327,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         burnAddress = _burnAddress;
         bobbAddress = _bobbAddress;
         developmentAddress = _devAddress;
+        stakeAddress = _stakeAddress;
         talesOfSparta = _talesOfSparta;
     }
 
