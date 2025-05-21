@@ -19,13 +19,13 @@ interface IFarm {
 
 contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
-    constructor(address _pyth, address _spartanDAO, address _talesOfSparta, uint256 _feeInWei, 
+    constructor(address _pyth, address _spartanDAO, address _talesOfSparta, address _talesByIncentive, uint256 _feeInWei, 
     bytes32 _sonicPriceId, address _entropy, address _entropyProvider) {
         pyth = IPyth(_pyth);
         sonicPriceId = _sonicPriceId;
         spartanDAO = _spartanDAO;
         talesOfSparta = _talesOfSparta;
-        talesByIncentive = _talesOfSparta;
+        talesByIncentive = _talesByIncentive;
         fee = _feeInWei;
         entropy = IEntropy(_entropy);
         entropyProvider = _entropyProvider;
