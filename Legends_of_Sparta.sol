@@ -345,10 +345,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         Author = _reveal;
     }
 
-    function withdraw(uint256 _amount) external payable onlySpartanDAO nonReentrant {
-        address payable _owner = payable(spartanDAO);
-        _owner.transfer(_amount);
-    }
+    // function withdraw(uint256 _amount) external payable onlySpartanDAO nonReentrant {
+    //     address payable _owner = payable(spartanDAO);
+    //     _owner.transfer(_amount);
+    // }
 
     function withdrawERC20(uint256 _payId, uint256 _amount) external payable onlySpartanDAO nonReentrant {
         TokenInfo storage tokens = AllowedCrypto[_payId];
