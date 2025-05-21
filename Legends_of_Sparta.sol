@@ -223,6 +223,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             // transfer S needed for gameplay
             require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");
             platformfee = platformFee; 
+            //distribute incentive promo
+            promoDistribution();
             //accept donations for development
             uint256 excess = msg.value - (amountWei + updateFee + _fee);
             if (excess > 0) {
@@ -238,7 +240,9 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 // Transfer multiples of SOS for required deposit and burn is required
                 uint256 requiredAmount = amountWei * sosMultiple;
                 transferTokens(requiredAmount); 
-                platformfee = platformFee * 2;     
+                platformfee = platformFee * 2;
+                //distribute incentive promo
+                promoDistribution();     
                 //Initiate redistribution from the contract       
                 burn(requiredAmount, burntoll);     
                 uint256 excess = msg.value - (amountWei + totalFees);
@@ -258,6 +262,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 payable(bobbAddress).transfer(requiredAmount - amountWei);
 
                 platformfee = platformFee * 2;
+                //distribute incentive promo
+                promoDistribution();
                 
                 //accept donations for development
                 uint256 excess = msg.value - (requiredAmount + totalFees);
@@ -289,6 +295,17 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         paytoken.transferFrom(msg.sender, address(this), farming);         
     }
 
+    function promoDistribution() internal {    
+        uint256 farmbal = IFarm(talesByIncentive).balanceOf(address(this));    
+        TokenInfo storage tokens_ = AllowedCrypto[pid];
+        IERC20 promotoken; 
+        promotoken = tokens_.paytoken; 
+        if (farmbal > farm && farm > 0) {        
+            promotoken.transfer(lastAddress, farm);
+        }    
+        TotalPromos += farm; 
+    }
+
     function burn(uint256 _burnAmount, uint256 _num) internal {
         uint256 taxed = (_burnAmount * _num)/100 ;
 
@@ -297,27 +314,19 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint256 stake = (taxed * staketax) / 100;
         uint256 last = ((taxed * lasttax) / 100);
         uint256 dev =  (taxed * devtax) / 100;
-        uint256 farmbal = IFarm(talesByIncentive).balanceOf(address(this));
 
         TokenInfo storage tokens = AllowedCrypto[payId];
-        TokenInfo storage tokens_ = AllowedCrypto[pid];
         IERC20 paytoken;
-        IERC20 promotoken;
-        paytoken = tokens.paytoken;  
-        promotoken = tokens_.paytoken;             
+        paytoken = tokens.paytoken; 
         paytoken.transfer(burnAddress, dead);   
         paytoken.transfer(bobbAddress, bobb); 
         paytoken.transfer(stakeAddress, stake);
-        paytoken.transfer(lastAddress, last);
+        paytoken.transfer(lastAddress, last);            
         paytoken.transfer(developmentAddress, dev); 
-        if (farmbal > farm && farm > 0) {        
-            promotoken.transfer(lastAddress, farm);
-        }
         TotalReserved += bobb;
         TotalStaked += stake;
         TotalPaid += last;
-        TotalBurns += dead;     
-        TotalPromos += farm;  
+        TotalBurns += dead;  
     }
     
     function transferTokens(uint256 _cost) internal {
