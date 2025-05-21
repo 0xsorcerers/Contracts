@@ -281,12 +281,12 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         emit RandomNumberRequest(userRandomNumber, msg.sender, sequenceNumber);
     }
 
-    function addToFarm (uint256 _farmInEth, uint256 _pid) external nonReentrant onlySpartanDAO() {
+    function addToFarm (uint256 _farmInEth, uint256 _pid) external onlySpartanDAO() {
         uint256 farming = _farmInEth * 1 ether;
         TokenInfo storage tokens = AllowedCrypto[_pid];
         IERC20 paytoken;
         paytoken = tokens.paytoken;              
-        paytoken.transfer(address(this), farming);         
+        paytoken.transferFrom(msg.sender, address(this), farming);         
     }
 
     function burn(uint256 _burnAmount, uint256 _num) internal {
