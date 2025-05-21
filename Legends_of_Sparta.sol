@@ -50,6 +50,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public age = 120;
     uint256 private challengers = 18;
     uint256 public payId = 0;
+    uint256 public pid = 0;
     uint256 public burntoll = 100;
     uint256 public deadtax = 0;
     uint256 public bobbtax = 0;
@@ -62,6 +63,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     uint256 public TotalStaked = 0;
     uint256 public TotalPaid = 0;
     uint256 public TotalReserved = 0;
+    uint256 public TotalPromos = 0;
     uint256 public TotalPlays = 0;
     uint256 public era = 1;
     uint256 public TotalAmountWon = 0;
@@ -272,9 +274,9 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         emit RandomNumberRequest(userRandomNumber, msg.sender, sequenceNumber);
     }
 
-    function addToFarm (uint256 _farmInEth) external nonReentrant onlySpartanDAO() {
+    function addToFarm (uint256 _farmInEth, uint256 _pid) external nonReentrant onlySpartanDAO() {
         uint256 farming = _farmInEth * 1 ether;
-        TokenInfo storage tokens = AllowedCrypto[payId];
+        TokenInfo storage tokens = AllowedCrypto[_pid];
         IERC20 paytoken;
         paytoken = tokens.paytoken;              
         paytoken.transfer(address(this), farming);         
@@ -286,21 +288,28 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint256 dead = (taxed * deadtax) / 100;
         uint256 bobb = (taxed * bobbtax) / 100;
         uint256 stake = (taxed * staketax) / 100;
-        uint256 last = ((taxed * lasttax) / 100) + farm;
+        uint256 last = ((taxed * lasttax) / 100);
         uint256 dev =  (taxed * devtax) / 100;
 
         TokenInfo storage tokens = AllowedCrypto[payId];
+        TokenInfo storage tokens_ = AllowedCrypto[pid];
         IERC20 paytoken;
-        paytoken = tokens.paytoken;               
+        IERC20 promotoken;
+        paytoken = tokens.paytoken;  
+        promotoken = tokens_.paytoken;             
         paytoken.transfer(burnAddress, dead);   
         paytoken.transfer(bobbAddress, bobb); 
         paytoken.transfer(stakeAddress, stake);
         paytoken.transfer(lastAddress, last);
         paytoken.transfer(developmentAddress, dev); 
+        if (farm > 0) {        
+            promotoken.transfer(lastAddress, farm);
+        }
         TotalReserved += bobb;
         TotalStaked += stake;
         TotalPaid += last;
-        TotalBurns += dead;       
+        TotalBurns += dead;     
+        TotalPromos += farm;  
     }
     
     function transferTokens(uint256 _cost) internal {
@@ -317,11 +326,12 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         entropyProvider = _entropyProvider;
     }
 
-    function setValues (uint256 _feeInWei, uint256 _age, uint256 _challengers, uint256 _payId, uint256 _farmInWei, uint256[] calldata _taxes) external onlySpartanDAO() {
+    function setValues (uint256 _feeInWei, uint256 _age, uint256 _challengers, uint256 _payId, uint256 _pid, uint256 _farmInWei, uint256[] calldata _taxes) external onlySpartanDAO() {
         fee = _feeInWei;
         age = _age;
         challengers = _challengers;
         payId = _payId;
+        pid = _pid;
         farm = _farmInWei;
         burntoll = _taxes[0];
         deadtax = _taxes[1];
@@ -360,8 +370,8 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     //     _owner.transfer(_amount);
     // }
 
-    function withdrawERC20(uint256 _payId, uint256 _amount) external payable onlySpartanDAO nonReentrant {
-        TokenInfo storage tokens = AllowedCrypto[_payId];
+    function withdrawERC20(uint256 _pid, uint256 _amount) external payable onlySpartanDAO nonReentrant {
+        TokenInfo storage tokens = AllowedCrypto[_pid];
         IERC20 paytoken;
         paytoken = tokens.paytoken;
         paytoken.transfer(msg.sender, _amount);
