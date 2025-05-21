@@ -13,6 +13,10 @@ interface ITalesOfSparta {
     function blacklisted(uint256 _index) external view returns (bool);
 }
 
+interface IFarm {
+    function balanceOf(address _sender) external view returns (uint256);
+}
+
 contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
     constructor(address _pyth, address _spartanDAO, address _talesOfSparta, uint256 _feeInWei, 
@@ -21,6 +25,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         sonicPriceId = _sonicPriceId;
         spartanDAO = _spartanDAO;
         talesOfSparta = _talesOfSparta;
+        talesByIncentive = _talesOfSparta;
         fee = _feeInWei;
         entropy = IEntropy(_entropy);
         entropyProvider = _entropyProvider;
@@ -37,6 +42,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     bytes32 sonicPriceId;
 
     address public talesOfSparta;
+    address public talesByIncentive;
     address public spartanDAO; 
     address public burnAddress; 
     address public bobbAddress;
@@ -101,7 +107,6 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
     TokenInfo[] public AllowedCrypto;
 
     //Maps
-    mapping (uint256 => BlackList) public blacklisted;
     mapping (uint256 => WinnersList) public pastwinners;
     mapping (uint256 => LegendInfo) private legendary;
     
@@ -290,6 +295,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         uint256 stake = (taxed * staketax) / 100;
         uint256 last = ((taxed * lasttax) / 100);
         uint256 dev =  (taxed * devtax) / 100;
+        uint256 farmbal = IFarm(talesByIncentive).balanceOf(address(this));
 
         TokenInfo storage tokens = AllowedCrypto[payId];
         TokenInfo storage tokens_ = AllowedCrypto[pid];
@@ -302,7 +308,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         paytoken.transfer(stakeAddress, stake);
         paytoken.transfer(lastAddress, last);
         paytoken.transfer(developmentAddress, dev); 
-        if (farm > 0) {        
+        if (farmbal > farm && farm > 0) {        
             promotoken.transfer(lastAddress, farm);
         }
         TotalReserved += bobb;
@@ -345,12 +351,13 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         sosMultiple = _taxes[9];
     } 
     
-    function setAddresses (address _burnAddress, address _bobbAddress, address _stakeAddress, address _devAddress, address _talesOfSparta) external onlySpartanDAO {
+    function setAddresses (address _burnAddress, address _bobbAddress, address _stakeAddress, address _devAddress, address _talesOfSparta, address _talesByIncentive) external onlySpartanDAO {
         burnAddress = _burnAddress;
         bobbAddress = _bobbAddress;
         developmentAddress = _devAddress;
         stakeAddress = _stakeAddress;
         talesOfSparta = _talesOfSparta;
+        talesByIncentive = _talesByIncentive;
     }
 
     function setFeeType(uint _binary) external onlySpartanDAO {
