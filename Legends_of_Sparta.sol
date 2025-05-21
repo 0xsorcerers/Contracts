@@ -223,9 +223,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             // transfer S needed for gameplay
             require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");
             platformfee = platformFee; 
+            //accept donations for development
             uint256 excess = msg.value - (amountWei + updateFee + _fee);
             if (excess > 0) {
-            payable(msg.sender).transfer(excess);
+                payable(developmentAddress).transfer(excess);
             }
 
         } else {
@@ -241,9 +242,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 //Initiate redistribution from the contract       
                 burn(requiredAmount, burntoll);     
                 uint256 excess = msg.value - (amountWei + totalFees);
-                // return excess funds
+
+                //accept donations for development
                 if (excess > 0) {
-                    payable(msg.sender).transfer(excess);
+                    payable(developmentAddress).transfer(excess);
                 }
 
             } else {
@@ -257,10 +259,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
 
                 platformfee = platformFee * 2;
                 
-                // Return Excess funds
+                //accept donations for development
                 uint256 excess = msg.value - (requiredAmount + totalFees);
                 if (excess > 0) {
-                    payable(msg.sender).transfer(excess);
+                    payable(developmentAddress).transfer(excess);
                 }
             }
         }
