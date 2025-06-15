@@ -14,7 +14,7 @@ interface IFarm {
     function balanceOf(address _sender) external view returns (uint256);
 }
 
-contract LegendOfSparta is ReentrancyGuard {
+contract MatchBet is ReentrancyGuard {
 
     constructor(address _matchBetDAO, address _matchBet, address _betByIncentive, uint256 _feeInWei) {
         matchBetDAO = _matchBetDAO;
