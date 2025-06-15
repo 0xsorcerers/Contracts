@@ -259,9 +259,9 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
         paytoken.transferFrom(msg.sender,address(this), _cost);
     }
 
-    function setValues (uint256 _feeEther, uint256 _tokenFeeEther, uint256 _payId, uint256[] calldata _taxes, 
+    function setValues (uint256 _feeInWei, uint256 _tokenFeeEther, uint256 _payId, uint256[] calldata _taxes, 
       uint256 _startTime, uint256 _wlDuration, uint256[] calldata _mintLimits) external onlyMatchBetDAO() {
-        fee = _feeEther * 1 ether;
+        fee = _feeInWei;
         tokenFee = _tokenFeeEther * 1 ether;
         payId = _payId;
         toll = _taxes[0];
