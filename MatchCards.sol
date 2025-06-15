@@ -5,9 +5,7 @@
 // Match Bet Player Cards on Matchain 
 // website: https://matchbet.my | telegram: https://t.me/matchbet | twitter: https://x.com/matchbet
 
-pragma solidity ^0.8.18;
-
-contract MatchCards is ERC721Enumerable, Ownable, ReentrancyGuard {        
+contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {        
         constructor(string memory _name, string memory _symbol, address _matchBetDAO) 
             ERC721(_name, _symbol)
         {
@@ -23,7 +21,7 @@ contract MatchCards is ERC721Enumerable, Ownable, ReentrancyGuard {
     uint256 public fee = 100 ether;
     uint256 public tokenFee = 0 ether;
     uint256 public payId = 0;
-    uint256 public immutable supplyCap = 3333;
+    uint256 public immutable supplyCap = 5000;
     uint256 private startTime = block.timestamp + 1 weeks;
     uint256 private wlDuration = 60 minutes;
     uint256 public toll = 100;
