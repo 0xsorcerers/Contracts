@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/ReentrancyGuard.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 
-interface IMatchBet {
+interface IMatchBetCards {
     function balanceOf(address _sender) external view returns (uint256);
     function ownerOf(uint256 _index) external view returns (address);
     function blacklisted(uint256 _index) external view returns (bool);
@@ -16,9 +16,9 @@ interface IFarm {
 
 contract MatchBet is ReentrancyGuard {
 
-    constructor(address _matchBetDAO, address _matchBet, address _betByIncentive, uint256 _feeInWei) {
+    constructor(address _matchBetDAO, address _matchBetCards, address _betByIncentive, uint256 _feeInWei) {
         matchBetDAO = _matchBetDAO;
-        matchBet = _matchBet;
+        matchBetCards = _matchBetCards;
         betByIncentive = _betByIncentive;
         fee = _feeInWei;
     }
@@ -27,7 +27,7 @@ contract MatchBet is ReentrancyGuard {
     event proofOfNumber(address indexed from, bytes32 number, uint256 proof);
     event RandomNumberResult(uint8 sequenceNumber, uint8 result);
 
-    address public matchBet;
+    address public matchBetCards;
     address public betByIncentive;
     address public matchBetDAO; 
     address public burnAddress; 
@@ -63,7 +63,7 @@ contract MatchBet is ReentrancyGuard {
     bool public feeType = true; 
     bool public paused = false; 
 
-    modifier onlyMatchBetDAO() {
+    modifier onlyMatchBetCardsDAO() {
         require(msg.sender == matchBetDAO, "Not authorized.");
         _;
     }
@@ -96,7 +96,7 @@ contract MatchBet is ReentrancyGuard {
     mapping (uint256 => WinnersList) public pastwinners;
     mapping (uint256 => LegendInfo) private legendary;
     
-    function addCurrency(IERC20 _paytoken) external onlyMatchBetDAO {
+    function addCurrency(IERC20 _paytoken) external onlyMatchBetCardsDAO {
         AllowedCrypto.push(
             TokenInfo({
                 paytoken: _paytoken
@@ -104,10 +104,10 @@ contract MatchBet is ReentrancyGuard {
         );
     }
 
-    function getMatchBet(uint256 _tokenId) internal view returns (uint256) {
-        bool betState = IMatchBet(matchBet).blacklisted(_tokenId);
+    function getMatchBetCards(uint256 _tokenId) internal view returns (uint256) {
+        bool betState = IMatchBetCards(matchBetCards).blacklisted(_tokenId);
         if (!betState) {
-            address betOwner = IMatchBet(matchBet).ownerOf(_tokenId);
+            address betOwner = IMatchBetCards(matchBetCards).ownerOf(_tokenId);
             if (betOwner == msg.sender) {
                 return _tokenId;
             } else {
@@ -133,7 +133,7 @@ contract MatchBet is ReentrancyGuard {
     
     function betMatch(uint8 _bet, bytes32 userRandomNumber) public payable nonReentrant { 
         require(!paused, "Paused Contract");
-        uint256 tokenId = getMatchBet(_bet);
+        uint256 tokenId = getMatchBetCards(_bet);
         uint8 _index = requestRandomNumber(_bet);
         emit proofOfNumber(msg.sender, userRandomNumber, _index);
         uint256 platformfee;
@@ -220,7 +220,7 @@ contract MatchBet is ReentrancyGuard {
         TotalPlays++;
     }
 
-    function addToFarm (uint256 _farmInEth, uint256 _pid) external onlyMatchBetDAO() {
+    function addToFarm (uint256 _farmInEth, uint256 _pid) external onlyMatchBetCardsDAO() {
         uint256 farming = _farmInEth * 1 ether;
         TokenInfo storage tokens = AllowedCrypto[_pid];
         IERC20 paytoken;
@@ -269,7 +269,7 @@ contract MatchBet is ReentrancyGuard {
         paytoken.transferFrom(msg.sender,address(this), _cost);
     } 
 
-    function setValues (uint256 _feeInWei, uint256 _age, uint256 _challengers, uint256 _payId, uint256 _pid, uint256 _farmInWei, uint256[] calldata _taxes) external onlyMatchBetDAO() {
+    function setValues (uint256 _feeInWei, uint256 _age, uint256 _challengers, uint256 _payId, uint256 _pid, uint256 _farmInWei, uint256[] calldata _taxes) external onlyMatchBetCardsDAO() {
         fee = _feeInWei;
         age = _age;
         challengers = _challengers;
@@ -288,16 +288,16 @@ contract MatchBet is ReentrancyGuard {
         betMultiple = _taxes[9];
     } 
     
-    function setAddresses (address _burnAddress, address _bobbAddress, address _stakeAddress, address _devAddress, address _matchBet, address _betByIncentive) external onlyMatchBetDAO {
+    function setAddresses (address _burnAddress, address _bobbAddress, address _stakeAddress, address _devAddress, address _matchBetCards, address _betByIncentive) external onlyMatchBetCardsDAO {
         burnAddress = _burnAddress;
         bobbAddress = _bobbAddress;
         developmentAddress = _devAddress;
         stakeAddress = _stakeAddress;
-        matchBet = _matchBet;
+        matchBetCards = _matchBetCards;
         betByIncentive = _betByIncentive;
     }
 
-    function setFeeType(uint _binary) external onlyMatchBetDAO {
+    function setFeeType(uint _binary) external onlyMatchBetCardsDAO {
         if (_binary > 0) {
             feeType = true;
         } else {
@@ -305,16 +305,16 @@ contract MatchBet is ReentrancyGuard {
         }
     }
     
-    function setAuthor (string memory _reveal) external onlyMatchBetDAO {
+    function setAuthor (string memory _reveal) external onlyMatchBetCardsDAO {
         Author = _reveal;
     }
 
-    function withdraw(uint256 _amount) external payable onlyMatchBetDAO nonReentrant {
+    function withdraw(uint256 _amount) external payable onlyMatchBetCardsDAO nonReentrant {
         address payable _owner = payable(matchBetDAO);
         _owner.transfer(_amount);
     }
 
-    function withdrawERC20(uint256 _pid, uint256 _amount) external payable onlyMatchBetDAO nonReentrant {
+    function withdrawERC20(uint256 _pid, uint256 _amount) external payable onlyMatchBetCardsDAO nonReentrant {
         TokenInfo storage tokens = AllowedCrypto[_pid];
         IERC20 paytoken;
         paytoken = tokens.paytoken;
@@ -322,20 +322,20 @@ contract MatchBet is ReentrancyGuard {
     }
 
     event Pause();
-    function pause() public onlyMatchBetDAO {
+    function pause() public onlyMatchBetCardsDAO {
         require(!paused, "Already paused.");
         paused = true;
         emit Pause();
     }
 
     event Unpause();
-    function unpause() public onlyMatchBetDAO {
+    function unpause() public onlyMatchBetCardsDAO {
         require(paused, "Not paused.");
         paused = false;
         emit Unpause();
     } 
 
-    function setDAO (address _matchBetDAO) external onlyMatchBetDAO {
+    function setDAO (address _matchBetDAO) external onlyMatchBetCardsDAO {
         matchBetDAO = _matchBetDAO;
     }
 
