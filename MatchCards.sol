@@ -18,7 +18,7 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
     address private developmentAddress;
     address public burnAddress;
     string public baseURI;
-    uint256 public fee = 100 ether;
+    uint256 public fee = 50000000000000000;
     uint256 public tokenFee = 0 ether;
     uint256 public payId = 0;
     uint256 public immutable supplyCap = 5000;
