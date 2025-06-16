@@ -15,7 +15,6 @@ interface IFarm {
 }
 
 contract MatchBet is ReentrancyGuard {
-
     constructor(address _matchBetDAO, address _matchBetCards, address _betByIncentive, uint256 _feeInWei) {
         matchBetDAO = _matchBetDAO;
         matchBetCards = _matchBetCards;
@@ -25,7 +24,7 @@ contract MatchBet is ReentrancyGuard {
     
     event proofOfLegend(uint256 indexed id, address indexed from, uint256 indexed amountWon, uint256 seeded);
     event proofOfNumber(address indexed from, bytes32 number, uint256 proof);
-    event RandomNumberResult(uint8 sequenceNumber, uint8 result);
+    event RandomNumberResult(uint256 sequenceNumber, uint8 result);
 
     address public matchBetCards;
     address public betByIncentive;
@@ -39,7 +38,7 @@ contract MatchBet is ReentrancyGuard {
     uint256 public reseed = 10;
     uint256 public multiple = 2;
     uint256 public betMultiple = 1000000;
-    uint256 public age = 120;
+    // uint256 public age = 120;
     uint256 private challengers = 18;
     uint256 public payId = 0;
     uint256 public pid = 0;
@@ -118,7 +117,7 @@ contract MatchBet is ReentrancyGuard {
         }
     }
     
-    function requestRandomNumber(uint8 _num) internal view returns (uint8) {
+    function requestRandomNumber(uint256 _num) internal view returns (uint8) {
         // Convert the random number to uint256
         uint256 randomValue = uint(keccak256(abi.encodePacked(block.prevrandao, block.timestamp, msg.sender)));
         uint8 result;
@@ -131,10 +130,10 @@ contract MatchBet is ReentrancyGuard {
         return result;
     }  
     
-    function betMatch(uint8 _bet, bytes32 userRandomNumber) public payable nonReentrant { 
+    function betMatch(uint256 _bet, bytes32 userRandomNumber) public payable nonReentrant { 
         require(!paused, "Paused Contract");
         uint256 tokenId = getMatchBetCards(_bet);
-        uint8 _index = requestRandomNumber(_bet);
+        uint256 _index = requestRandomNumber(_bet);
         emit proofOfNumber(msg.sender, userRandomNumber, _index);
         uint256 platformfee;
 
@@ -269,9 +268,9 @@ contract MatchBet is ReentrancyGuard {
         paytoken.transferFrom(msg.sender,address(this), _cost);
     } 
 
-    function setValues (uint256 _feeInWei, uint256 _age, uint256 _challengers, uint256 _payId, uint256 _pid, uint256 _farmInWei, uint256[] calldata _taxes) external onlyMatchBetCardsDAO() {
+    function setValues (uint256 _feeInWei, uint256 _challengers, uint256 _payId, uint256 _pid, uint256 _farmInWei, uint256[] calldata _taxes) external onlyMatchBetCardsDAO() {
         fee = _feeInWei;
-        age = _age;
+        // age = _age;
         challengers = _challengers;
         payId = _payId;
         pid = _pid;
