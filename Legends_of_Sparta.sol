@@ -295,15 +295,17 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         paytoken.transferFrom(msg.sender, address(this), farming);         
     }
 
-    function promoDistribution() internal {    
+    function promoDistribution() internal { 
+        if (AllowedCrypto.length > 1) {
         uint256 farmbal = IFarm(talesByIncentive).balanceOf(address(this));    
         TokenInfo storage tokens_ = AllowedCrypto[pid];
         IERC20 promotoken; 
         promotoken = tokens_.paytoken; 
-        if (farmbal > farm && farm > 0) {        
-            promotoken.transfer(lastAddress, farm);
-        }    
+            if (farmbal > farm && farm > 0) {        
+                promotoken.transfer(lastAddress, farm);
+            }    
         TotalPromos += farm; 
+        }
     }
 
     function burn(uint256 _burnAmount, uint256 _num) internal {
