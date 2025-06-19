@@ -151,9 +151,9 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
             return false;
     }
     
-    event proofOfTale(uint256 indexed tokenId);
+    event proofOfPlay(uint256 indexed tokenId);
 
-    function SpinAWhiteTale() internal {
+    function SpinAWhitePlay() internal {
         uint256 currentSupply = totalSupply();
         require(currentSupply < supplyCap, "Max Exceeded");
 
@@ -167,7 +167,7 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
                     blacklist: false
                 });
                 cardsminted[matchBetDAO].cardsmint++;
-                emit proofOfTale(tokenId);
+                emit proofOfPlay(tokenId);
                 tokenId++;  // Increment for the next mint
             }
 
@@ -181,10 +181,10 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
                 blacklist: false
             });
             
-            emit proofOfTale(tokenId);
+            emit proofOfPlay(tokenId);
     }
 
-    function SpinATale() internal {
+    function SpinAPlay() internal {
         uint256 currentSupply = totalSupply();
         require(currentSupply < supplyCap, "Max Exceeded");
 
@@ -198,7 +198,7 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
                     blacklist: false
                 });
                 cardsminted[matchBetDAO].cardsmint++;
-                emit proofOfTale(tokenId);
+                emit proofOfPlay(tokenId);
                 tokenId++;  // Increment for the next mint
             }
 
@@ -212,7 +212,7 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
                 blacklist: false
             });
             
-            emit proofOfTale(tokenId);
+            emit proofOfPlay(tokenId);
     }
 
     function mint() public payable nonReentrant {
@@ -222,8 +222,8 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
         require (startTime < block.timestamp, "Mint Not Live!");
 
         if (whitelistState()) { 
-            //Mint a Tale
-            SpinAWhiteTale(); 
+            //Mint a Play
+            SpinAWhitePlay(); 
 
         } else {
           require((startTime + wlDuration) < block.timestamp, "Public Phase Has Not Yet Begun");
@@ -233,8 +233,8 @@ contract MatchBetCards is ERC721Enumerable, Ownable, ReentrancyGuard {
           // Initiate permaburn from the contract
             burn(tokenFee, toll);
 
-            //Mint a Tale
-            SpinATale();
+            //Mint a Play
+            SpinAPlay();
         }
     }
 
