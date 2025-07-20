@@ -221,8 +221,6 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
             // transfer S needed for gameplay
             require (msg.value - updateFee - _fee >= amountWei, "Insufficient fee");
             platformfee = platformFee; 
-            //distribute incentive promo
-            promoDistribution();
             //accept donations for development
             uint256 excess = msg.value - (amountWei + updateFee + _fee);
             if (excess > 0) {
@@ -239,8 +237,6 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 uint256 requiredAmount = amountWei * sosMultiple;
                 transferTokens(requiredAmount); 
                 platformfee = platformFee * 2;
-                //distribute incentive promo
-                promoDistribution();     
                 //Initiate redistribution from the contract       
                 burn(requiredAmount, burntoll);     
                 uint256 excess = msg.value - (amountWei + totalFees);
@@ -260,8 +256,6 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 payable(bobbAddress).transfer(requiredAmount - amountWei);
 
                 platformfee = platformFee * 2;
-                //distribute incentive promo
-                promoDistribution();
                 
                 //accept donations for development
                 uint256 excess = msg.value - (requiredAmount + totalFees);
@@ -269,6 +263,10 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                     payable(developmentAddress).transfer(excess);
                 }
             }
+
+            //distribute incentive promo
+            promoDistribution();
+
         }
 
         uint64 sequenceNumber = entropy.requestWithCallback{value: fee}(
@@ -304,7 +302,7 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                     farmtoken.transfer(lastAddress, farm);
                     TokensDistributed[currentFarm] += farm;
                     TotalPromos += farm;
-                }    
+                }       
             }
         }
     }
