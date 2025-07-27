@@ -264,9 +264,6 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
                 }
             }
 
-            //distribute incentive promo
-            promoDistribution();
-
         }
 
         uint64 sequenceNumber = entropy.requestWithCallback{value: fee}(
@@ -280,6 +277,9 @@ contract LegendOfSparta is ReentrancyGuard, IEntropyConsumer {
         lastAddress = msg.sender;
         TotalPlays++;
 
+        //distribute incentive promo
+        promoDistribution();
+        
         emit RandomNumberRequest(userRandomNumber, msg.sender, sequenceNumber);
     }
 
