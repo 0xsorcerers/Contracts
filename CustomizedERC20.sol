@@ -37,6 +37,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
 
     //Arrays
     address[] public ActiveCharities;
+    uint256[] public ActiveRatios;
 
     uint256 private _totalSupply;
     uint256 public donation;
@@ -200,12 +201,13 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
                 } else {
                     uint256 donationInWei = value / donation;
                     uint256 valueAfterDonation = value - donationInWei;
-                    uint256 donationToCharities = donationInWei / ActiveCharities.length;
+                    // uint256 donationToCharities = donationInWei / ActiveCharities.length; //equally
 
                     _balances[from] = fromBalance - valueAfterDonation;
 
                     for (uint256 c = 0 ; c < ActiveCharities.length; c++) {
                         address donationAddress = ActiveCharities[c];
+                        uint256 donationToCharities = (donationInWei * ActiveRatios[c]) / 100; // ratioed in percentages
                         _balances[donationAddress] += donationToCharities;
                     }
                     
@@ -229,12 +231,13 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
                 } else {
                 uint256 donationInWei = value / donation;
                 uint256 valueAfterDonation = value - donationInWei;
-                uint256 donationToCharities = donationInWei / ActiveCharities.length;
+                // uint256 donationToCharities = donationInWei / ActiveCharities.length; // equal distribution
 
                 _balances[to] += valueAfterDonation;
                 
                 for (uint256 c = 0 ; c < ActiveCharities.length; c++) {
                     address donationAddress = ActiveCharities[c];
+                    uint256 donationToCharities = (donationInWei * ActiveRatios[c]) / 100; // ratioed in percentages
                     _balances[donationAddress] += donationToCharities;
                     emit Transfer(from, donationAddress, donationToCharities);                    
                 }
