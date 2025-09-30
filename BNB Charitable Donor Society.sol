@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "./ERC20.sol";
+import "./ChadsERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/contracts/utils/ReentrancyGuard.sol";
 
 contract BNB_Charitable_Donor_Society is ERC20, ReentrancyGuard {
@@ -15,6 +15,7 @@ contract BNB_Charitable_Donor_Society is ERC20, ReentrancyGuard {
         authority[_giggleAcademyWallet] = true;
         ExcludeFromTransferFee[_pancakeSwapRouter] = true;
         ActiveCharities.push(_giggleAcademyWallet);
+        ActiveRatios.push(100);
         donation = 200; // 0.2% donation to Giggle Academy
        _mint(msg.sender, 1000000000000 * 1 ether); // One-time mint of full supply of 1 trillion tokens to the deployer
     }
@@ -35,8 +36,9 @@ contract BNB_Charitable_Donor_Society is ERC20, ReentrancyGuard {
         }
     }  
 
-    function setCharityAddresses (address[] calldata _newCharities) external onlyAuthority nonReentrant {
+    function setCharity (address[] calldata _newCharities, uint256[] calldata _ratio) external onlyAuthority nonReentrant {
         ActiveCharities = _newCharities;
+        ActiveRatios = _ratio;
     }
     
     function excludeAddressFromFees (address _designee) external onlyAuthority nonReentrant {
