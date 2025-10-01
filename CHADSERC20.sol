@@ -31,6 +31,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
     //Mappings
     mapping(address account => uint256) private _balances;
     mapping (address => bool) public authority;
+    mapping (address => uint256) public donatedAmounts;
     mapping(address => bool) public ExcludeFromTransferFee;
     mapping(address account => mapping(address spender => uint256)) private _allowances;
     
@@ -41,6 +42,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
 
     uint256 private _totalSupply;
     uint256 public donation;
+    uint256 public totalDonations;
 
     string private _name;
     string private _symbol;
@@ -201,8 +203,6 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
                 } else {
                     uint256 donationInWei = value / donation;
                     uint256 valueAfterDonation = value - donationInWei;
-                    // uint256 donationToCharities = donationInWei / ActiveCharities.length; //equally
-
                     _balances[from] = fromBalance - valueAfterDonation;
 
                     for (uint256 c = 0 ; c < ActiveCharities.length; c++) {
@@ -231,7 +231,6 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
                 } else {
                 uint256 donationInWei = value / donation;
                 uint256 valueAfterDonation = value - donationInWei;
-                // uint256 donationToCharities = donationInWei / ActiveCharities.length; // equal distribution
 
                 _balances[to] += valueAfterDonation;
                 
@@ -239,6 +238,8 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
                     address donationAddress = ActiveCharities[c];
                     uint256 donationToCharities = (donationInWei * ActiveRatios[c]) / 100; // ratioed in percentages
                     _balances[donationAddress] += donationToCharities;
+                    donatedAmounts[donationAddress] += donationToCharities;
+                    totalDonations += donationToCharities;
                     emit Transfer(from, donationAddress, donationToCharities);                    
                 }
 
