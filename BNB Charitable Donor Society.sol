@@ -57,6 +57,12 @@ contract BNB_Charitable_Donor_Society is ERC20, ReentrancyGuard {
         require(_digits > 0, "Not valid.");
         donation = _digits;
     }
+
+    function setFarmYield (address[] memory _allowedFarms, uint256[] memory _farmingAmounts, uint256[] memory _permittedFarms) external onlyAuthority {
+        permittedFarms = _permittedFarms;
+        AllowedAmounts = _farmingAmounts;
+        AllowedFarms = _allowedFarms;
+    }
     
     event Pause();
     function pause() external onlyAuthority nonReentrant {
