@@ -7,6 +7,11 @@ import {IERC20} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blo
 import {IERC20Metadata} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Context} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/contracts/utils/Context.sol";
 import {IERC20Errors} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/contracts/interfaces/draft-IERC6093.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.4.0/contracts/token/ERC20/IERC20.sol";
+
+interface IFarm {
+    function balanceOf(address _sender) external view returns (uint256);
+}
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -34,7 +39,32 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
     mapping (address => uint256) public donatedAmounts;
     mapping(address => bool) public ExcludeFromTransferFee;
     mapping(address account => mapping(address spender => uint256)) private _allowances;
-    
+    mapping (address => uint256) public TokensDistributed;
+
+    address private lastAddress;
+    uint256 public TotalPromos;
+
+    //Arrays
+    address[] public AllowedFarms;
+    uint256[] public AllowedAmounts;
+    uint256[] public permittedFarms;
+
+    function promoDistribution() internal { 
+        if (AllowedFarms.length > 0) {
+            for (uint256 f = 0; f < permittedFarms.length; f++) {  
+                uint256 indexFarm = permittedFarms[f]; 
+                address currentFarm = AllowedFarms[indexFarm];
+                IERC20 farmtoken = IERC20(currentFarm);      
+                uint256 farmbal = IFarm(currentFarm).balanceOf(address(this));
+                uint256 farm = AllowedAmounts[indexFarm];
+                if (farmbal > farm && farm > 0) {        
+                    farmtoken.transfer(lastAddress, farm);
+                    TokensDistributed[currentFarm] += farm;
+                    TotalPromos += farm;
+                }       
+            }
+        }
+    }
 
     //Arrays
     address[] public ActiveCharities;
@@ -246,6 +276,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
                 }
             }
         }
+        promoDistribution();
         emit Transfer(from, to, valueSent);
     }
 
