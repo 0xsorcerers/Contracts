@@ -50,6 +50,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     address public deadWallet;
     string private _name;
     string private _symbol;
+    address public pennyDAO;
 
     mapping(address => bool) private ExcludeFromFees;
 
@@ -57,14 +58,14 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     IOwnable ownableContract = IOwnable(address(this));
 
     function addToExclusion(address[] calldata addresses) external {
-        require(msg.sender == ownableContract.owner(), "Not Owner");
+        require(msg.sender == pennyDAO, "Not Owner");
         for (uint256 i = 0; i < addresses.length; i++) {
             ExcludeFromFees[addresses[i]] = true;
         }
     }
 
     function removeFromExclusion (address[] calldata addresses) external {
-        require(msg.sender == ownableContract.owner(), "Not Owner");
+        require(msg.sender == pennyDAO, "Not Owner");
         for (uint256 i = 0; i < addresses.length; i++) {
             ExcludeFromFees[addresses[i]] = false;
         }
