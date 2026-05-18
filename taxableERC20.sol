@@ -17,15 +17,13 @@ contract Penny is ERC20, ReentrancyGuard {
         lpWallet = _lpWallet;
         deadWallet = _deadWallet;
         penalty = _penalty;
-       _mint(msg.sender, 10_000_000 * 1 ether); // One-time mint of full supply of 1 trillion tokens to the deployer
+       _mint(msg.sender, 10_000_000 * 1 ether); 
     }
 
     modifier onlyPennyDAO() {
         require(msg.sender == pennyDAO, "Not authorized.");
         _;
     }
-
-    address public pennyDAO;
 
     function mint(uint256 _amount) external nonReentrant onlyPennyDAO {
        _mint(msg.sender, _amount * 1 ether); 
